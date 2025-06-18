@@ -4,6 +4,8 @@ import com.example.crm.domain.model.Address;
 import com.example.crm.service.AddressService;
 import com.example.crm.web.dto.AddressDto;
 import com.example.crm.web.dto.AddressMapper;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -24,7 +26,14 @@ public class AddressController {
     }
 
     @GetMapping
-    public Page<AddressDto> list(@PageableDefault Pageable pageable) {
+    public Page<AddressDto> list(
+            @Parameter(in = ParameterIn.QUERY, description = "Page number (0-based)", example = "0", required = false)
+            @RequestParam(required = false, defaultValue = "0") int page,
+            @Parameter(in = ParameterIn.QUERY, description = "Page size", example = "10", required = false) 
+            @RequestParam(required = false, defaultValue = "10") int size,
+            @Parameter(in = ParameterIn.QUERY, description = "Sort criteria (field,direction)", example = "street,asc", required = false)
+            @RequestParam(required = false, defaultValue = "id,asc") String sort,
+            @PageableDefault(size = 10, sort = "id") Pageable pageable) {
         return service.findAll(pageable).map(mapper::toDto);
     }
 
