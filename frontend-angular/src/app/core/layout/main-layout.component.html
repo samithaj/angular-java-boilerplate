@@ -1,0 +1,12 @@
+<mat-toolbar color="primary">
+  <span>Simple CRM</span>
+</mat-toolbar>
+<mat-tab-nav-bar>
+  <a mat-tab-link routerLink="/addresses" routerLinkActive #rla1="routerLinkActive" [active]="rla1.isActive">Address</a>
+  <a mat-tab-link routerLink="/customers" routerLinkActive #rla2="routerLinkActive" [active]="rla2.isActive">Customer</a>
+  <a mat-tab-link routerLink="/products" routerLinkActive #rla3="routerLinkActive" [active]="rla3.isActive">Product</a>
+  <a mat-tab-link routerLink="/orders" routerLinkActive #rla4="routerLinkActive" [active]="rla4.isActive">Order</a>
+</mat-tab-nav-bar>
+<div class="content">
+  <router-outlet></router-outlet>
+</div>

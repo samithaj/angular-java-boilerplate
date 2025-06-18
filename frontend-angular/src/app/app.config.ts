@@ -4,6 +4,7 @@ import { provideRouter } from '@angular/router';
 import { routes } from './app.routes';
 import { withInMemoryScrolling } from '@angular/router';
 import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
+import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideServiceWorker } from '@angular/service-worker';
 
 import { provideHttpClient, withFetch } from '@angular/common/http';
@@ -13,6 +14,7 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(
       withFetch(),
     ),
+    provideAnimations(),
     provideBrowserGlobalErrorListeners(),
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes,
