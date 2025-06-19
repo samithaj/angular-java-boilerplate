@@ -14,7 +14,7 @@ export const routes: Routes = [
     children: [
       { path: 'addresses', canActivate: [authGuard], loadChildren: () => import('./modules/features/address/address.routes').then(mod => mod.routes) },
       { path: 'customers', canActivate: [authGuard], loadChildren: () => import('./modules/features/customer/customer.routes').then(mod => mod.routes) },
-      { path: 'products', canActivate: [authGuard], loadComponent: () => import('./modules/general/not-found/not-found').then(mod => mod.NotFound) },
+      { path: 'products', canActivate: [authGuard], loadChildren: () => import('./modules/features/product/product.routes').then(mod => mod.routes) },
       { path: 'orders', canActivate: [authGuard], loadComponent: () => import('./modules/general/not-found/not-found').then(mod => mod.NotFound) }
     ]
   },

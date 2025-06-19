@@ -22,4 +22,18 @@ public class RestExceptionHandler {
         problem.setDetail("Validation failed");
         return problem;
     }
+
+    @ExceptionHandler(DuplicateSkuException.class)
+    public ProblemDetail handleDuplicate(DuplicateSkuException ex) {
+        ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.CONFLICT);
+        problem.setDetail(ex.getMessage());
+        return problem;
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ProblemDetail handleIllegalState(IllegalStateException ex) {
+        ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.CONFLICT);
+        problem.setDetail(ex.getMessage());
+        return problem;
+    }
 }

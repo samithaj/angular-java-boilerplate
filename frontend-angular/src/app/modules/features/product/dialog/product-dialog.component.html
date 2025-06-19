@@ -1,0 +1,53 @@
+<form [formGroup]="form" fxLayout="column" fxLayoutGap="10px">
+  <mat-form-field>
+    <mat-label>Category</mat-label>
+    <mat-select (selectionChange)="loadSubCategoriesByCategory($event.value)">
+      <mat-option *ngFor="let c of (categories$ | async)" [value]="c.id">{{c.name}}</mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field>
+    <mat-label>Sub Category</mat-label>
+    <mat-select formControlName="subCategoryId">
+      <mat-option *ngFor="let sc of (subcategories$ | async)" [value]="sc.id">{{sc.name}}</mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field>
+    <mat-label>SKU</mat-label>
+    <input matInput formControlName="sku" />
+  </mat-form-field>
+
+  <mat-form-field>
+    <mat-label>Name</mat-label>
+    <input matInput formControlName="name" />
+  </mat-form-field>
+
+  <mat-form-field>
+    <mat-label>Description</mat-label>
+    <textarea matInput formControlName="description"></textarea>
+  </mat-form-field>
+
+  <mat-form-field>
+    <mat-label>Price</mat-label>
+    <input matInput type="number" formControlName="price" />
+  </mat-form-field>
+
+  <mat-form-field>
+    <mat-label>Stock</mat-label>
+    <input matInput type="number" formControlName="stockQuantity" />
+  </mat-form-field>
+
+  <mat-form-field>
+    <mat-label>Active</mat-label>
+    <mat-select formControlName="active">
+      <mat-option [value]="true">Yes</mat-option>
+      <mat-option [value]="false">No</mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <div fxLayout="row" fxLayoutAlign="end center" fxLayoutGap="10px">
+    <button mat-raised-button color="primary" (click)="submit()">Save</button>
+    <button mat-raised-button (click)="cancel()">Cancel</button>
+  </div>
+</form>
