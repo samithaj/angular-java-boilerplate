@@ -9,6 +9,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { FlexLayoutModule } from '@angular/flex-layout';
+import { RouterModule } from '@angular/router';
 import { ProductService } from '../services/product.service';
 import { Product } from '../services/product.model';
 import { ProductDialogComponent } from '../dialog/product-dialog.component';
@@ -27,6 +28,7 @@ import { ProductDialogComponent } from '../dialog/product-dialog.component';
     MatIconModule,
     MatDialogModule,
     MatSnackBarModule,
+    RouterModule,
     ProductDialogComponent
   ],
   templateUrl: './product-list.component.html',

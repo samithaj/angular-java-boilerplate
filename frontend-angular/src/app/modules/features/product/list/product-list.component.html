@@ -1,5 +1,9 @@
 <div fxLayout="column" fxLayoutGap="10px">
-  <div fxLayout="row" fxLayoutAlign="end center">
+  <div fxLayout="row" fxLayoutAlign="space-between center" fxLayoutGap="10px">
+    <div>
+      <button mat-raised-button color="accent" routerLink="/products/categories">Manage Categories</button>
+      <button mat-raised-button color="accent" routerLink="/products/subcategories">Manage Subcategories</button>
+    </div>
     <button mat-raised-button color="primary" (click)="openDialog()">Add Product</button>
   </div>
   <table mat-table [dataSource]="dataSource">
