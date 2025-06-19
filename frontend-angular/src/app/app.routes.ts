@@ -1,10 +1,23 @@
 import { Routes } from '@angular/router';
+import { authGuard } from './core/guards/auth.guard';
+import { MainLayoutComponent } from './core/layout/main-layout.component';
 
 import { Home } from './modules/general/home/home';
 import { NotFound } from './modules/general/not-found/not-found';
 
 export const routes: Routes = [
   { path: '', component: Home, },
+
+  {
+    path: '',
+    component: MainLayoutComponent,
+    children: [
+      { path: 'addresses', canActivate: [authGuard], loadChildren: () => import('./modules/features/address/address.routes').then(mod => mod.routes) },
+      { path: 'customers', canActivate: [authGuard], loadChildren: () => import('./modules/features/customer/customer.routes').then(mod => mod.routes) },
+      { path: 'products', canActivate: [authGuard], loadComponent: () => import('./modules/general/not-found/not-found').then(mod => mod.NotFound) },
+      { path: 'orders', canActivate: [authGuard], loadComponent: () => import('./modules/general/not-found/not-found').then(mod => mod.NotFound) }
+    ]
+  },
 
   {
     path: 'landing-page',
