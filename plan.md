@@ -14,15 +14,6 @@
    • Or use your own MySQL instance; update `spring.datasource.*` in `backend-java-springboot/src/main/resources/application.properties`.
 4. Verify DB connectivity: `mvn -q -DskipTests spring-boot:run` then navigate to `/actuator/health`.
 
-## Phase 1 – Backend Scaffolding *(½ day, ✅ completed)*
-1. Create package `com.example.crm` to isolate new code.  Leave existing demo controllers untouched.
-2. Add **DTO skeletons** (`AddressDto`, `CustomerDto`, `ProductDto`, `OrderHeaderDto`, `OrderLineDto`) under `crm.dto` – equals/hashCode only.
-3. Create **JPA entities** mirroring DTOs in `crm.entity` with `@Table` mapping.
-4. Create **Spring Data repositories** (`AddressRepository extends JpaRepository<Address, Long>`, …).
-5. Add **service layer** stubs delegating to repositories – **no validation yet**.
-6. Add central `RestExceptionHandler` returning `422` JSON for `ConstraintViolationException`.
-7. Register a root path `/api` with `@RequestMapping("/api")` super-class to prefix future controllers.
-8. Optional: Add Flyway migration `V1__initial.sql` to create tables automatically in dev.
 ## Phase 1 – Backend Scaffolding *(½ day)*
 1. **Project & Build Setup**
    • Ensure Spring Boot 3.4.x, Java 21, Maven (packaging = jar, not war)
@@ -98,16 +89,6 @@
 
 ✅ Build & tests should pass; foundation ready for CRUD implementation.
 
-## Phase 2 – Address Module *(1 day, ✅ backend complete)*
-1. Implement `AddressService` CRUD on top of `AddressRepository` (extends `JpaRepository`).
-2. Implement `AddressController`  
-   • `GET /api/addresses?page&size&sort`  
-   • `POST/PUT/DELETE` with Bean Validation (`@NotBlank`, etc.).  
-   • Use Spring Data `Pageable` (`page`, `size`, `sort`) and return `Page<AddressDto>`.
-3. Add **unit tests** (WebMvcTest) for happy paths.
-4. Generate OpenAPI docs via springdoc (`/swagger`).
-
-✅ Existing demo endpoints remain; new tests green.
 ## Phase 2 – Address Module *(1 day)*
 1. **Service Implementation** (`AddressService`)
    • CRUD operations with proper exception handling
@@ -139,60 +120,159 @@
 
 ✅ Address module fully functional with production-ready patterns.
 
-## Phase 3 – Frontend Scaffolding & Address UI *(1½ day)*
+## Phase 3 – Customer Module *(1 day)*
+
+
+implement Customer Module (Backend + Frontend)  * 
+
+### Backend (`/backend-java-springboot`)
+1. Add `CustomerDto` in `crm.web.dto` mirroring fields `id, firstName, lastName, email, addressId` with Bean Validation (`@NotBlank`, `@Email`).
+2. Create `Customer` entity in `crm.domain.model`:
+   • Columns `first_name`, `last_name`, `email`  
+   • `@ManyToOne(fetch = FetchType.LAZY)` to `Address`, FK `address_id` with index.  
+   • Timestamps via `@CreationTimestamp` / `@UpdateTimestamp` identical to `Address`.
+3. Declare `CustomerRepository extends JpaRepository<Customer, Long>` in `crm.domain.repository`.
+4. Generate `CustomerMapper` (MapStruct, `componentModel = "spring"`).
+5. Implement `CustomerService` following the pattern used in `AddressService`:  
+   • `findAll(Pageable)`  
+   • `findById(Long)` with 404  
+   • `create`, `update`, `delete` incl. validation that referenced `Address` exists (otherwise throw `ResourceNotFoundException`).
+6. Expose `CustomerController` at `/api/v1/customers` replicating the contract of `AddressController` (page, size, sort parameters). Return `Page<CustomerDto>`.
+7. Extend `AddressService` with `List<Address> findAll()` (no pagination) for dropdown usage in the UI.
+8. Write WebMvc tests (`@WebMvcTest(CustomerController.class)`) for:  
+   • Happy path list & create  
+   • `422` when unknown `addressId`  
+   • Validation errors.
+9. Verify OpenAPI UI `/swagger` now shows both Address and Customer endpoints.
+
+### Frontend (`/frontend-angular`)
+1. Generate feature module `customer` (`ng g m modules/features/customer --route=customers --module app.routes`).
+2. Create `CustomerService` (`src/app/modules/features/customer/services/customer.service.ts`) using `HttpClient` pointing to `/api/v1/customers`.
+3. Scaffold `CustomerListComponent` patterned after the Address table:  
+   • `MatTable` columns: First, Last, Email, Street, City + actions.  
+   • Integrate `MatPaginator` & `MatSort`.  
+   • Call `CustomerService.list()` and map backend `Page<CustomerDto>` into table & paginator state.
+4. Implement `CustomerDialogComponent` (Add/Edit):  
+   • Reactive Form with validators (`Validators.required`, `Validators.email`).  
+   • `mat-select` for Address (populate via `AddressService.getAll()`).  
+   • On submit call `create` / `update` and close dialog returning the saved item.
+5. Hook snackbar success/error handling in the shared `HttpErrorInterceptor`.
+6. Add navigation tab in `MainLayoutComponent` and protect route with the existing `AuthGuard` placeholder.
+7. Unit tests:  
+   • Component renders list.  
+   • Form validation.  
+   • Service success flow with `HttpTestingController`.
+
+✅ End-to-end: Creating, editing & deleting Customers works in UI; database rows update; all tests green.
+
+maven repos have issue downloding
+
+
+------------------------------
+## Phase 4 – Product Module *(1 day)*
+1. **Entities & Database Schema**  
+   • Introduce the three-level hierarchy used in the Product screen:  
+     – `ProductCategory` (**PK** `id`, `name`)  
+     – `ProductSubCategory` (**PK** `id`, `name`, `modifiedDate`, **FK** `category_id`)  
+     – `Product` (**PK** `id`, **FK** `subcategory_id`, `sku`, `name`, `description`, `price`, `stockQuantity`, `active`, etc.)  
+   • Create JPA entities in `crm.domain.model` with relations **`ProductCategory` 1-N `ProductSubCategory` 1-N `Product`**.  
+   • Add Flyway migration `V2__product_hierarchy.sql` to create tables, foreign keys (`product_subcategory_id` is the relation key), and indexes; follow up with `V3__product_constraints.sql` for the unique index on `Product.sku`.
+
+2. **DTOs**  
+   • `ProductCategoryDto` { `id`, `name` }  
+   • `ProductSubCategoryDto` { `id`, `categoryId`, `name`, `modifiedDate` }  
+   • Update `ProductDto` to include `subCategoryId` (instead of loose category fields) plus existing fields `sku`, `name`, `description`, `price`, `stockQuantity`, `active`.
+
+3. **Business Rules**  
+   • `sku` must be **UNIQUE** – duplicates return **409 Conflict**.  
+   • `price` must be > 0 with scale ≤ 2.  
+   • `stockQuantity` ≥ 0 (no negatives).  
+   • A `Product` cannot be deleted if referenced by any `OrderLine`.  
+   • A `ProductSubCategory` cannot be deleted while it still contains products.  
+   • A `ProductCategory` cannot be deleted while it still contains sub-categories.  
+   • Setting `active = false` prevents a product's use in new Orders.
+
+4. **Service / Repository / Controller**  
+   • Create Spring Data repositories and stateless services for **Category**, **SubCategory**, and **Product**.  
+   • Expose REST endpoints:  
+     – `/api/v1/product-categories`  
+     – `/api/v1/product-subcategories` (supports `?categoryId=` filter for the top grid)  
+     – `/api/v1/products` (supports `?subCategoryId=` filter for the bottom grid).  
+   • `ProductService` enforces pricing & stock rules; `ProductSubCategoryService` and `ProductCategoryService` enforce hierarchical delete checks.
+
+5. **Testing**  
+   • Unit & integration tests for hierarchy constraints (duplicate `sku`, blocked deletes) and pricing/stock rules.  
+   • WebMvc tests for filter endpoints and conflict scenarios.
+
+## Phase 5 – Order Module *(2 days)*
+1. **DTOs**  
+   • `OrderHeaderDto` (id, orderDate, status, customerId, totalAmount **readonly**).  
+   • `OrderLineDto` (productId, quantity, unitPrice **readonly**, lineTotal **readonly**) with nested validation.
+
+2. **Business Rules**  
+   • An Order must contain at least **one** OrderLine.  
+   • `orderDate` cannot be in the future.  
+   • Allowed `status` values: `NEW`, `PAID`, `SHIPPED`, `CANCELLED`.  
+   • `customerId` must reference an existing Customer; deletion of a Customer with orders returns **409 Conflict**.  
+   • Each line's `productId` must reference an **ACTIVE** Product with sufficient stock.  
+   • `quantity` > 0 and ≤ current `stockQuantity`.  
+   • `totalAmount` and `lineTotal` are calculated on the server; client-supplied values are ignored.  
+   • Creating an order decrements product stock atomically; cancelling restores stock.  
+   • Orders in `SHIPPED` status are **immutable** (no update or delete).  
+   • Optimistic locking on `OrderHeader` & `Product` to handle concurrent stock updates.
+
+3. **Service Layer**  
+   • `OrderService` orchestrates header/lines persistence inside a single `@Transactional` block (`REQUIRES_NEW` isolation).  
+   • Emits domain events `OrderCreated`, `OrderCancelled` for future integrations.
+
+4. **Controller**  
+   • Standard CRUD + `PATCH /api/v1/orders/{id}/status` endpoint for status transitions.
+
+5. **Testing**  
+   • Happy path create/pay/ship/cancel.  
+   • Rule violations: future date, no lines, insufficient stock, duplicate order per customer/day, modify shipped order.
+
+## Phase 6 – Frontend Scaffolding *(½ day)*
 1. Install Angular Material + flex-layout.  
    `ng add @angular/material --theme=indigo-pink --typography --no-interactive`
 2. Create **core layout**: `MainLayoutComponent` with toolbar & tabs (router-links): Address | Customer | Product | Order.
 3. Route guard placeholder (no auth).
 4. Mock-API base url constant (`/api`).
-5. Generate `address` feature module with list + dialog components.
-6. **List page** – MatTable with paginator & filter.  Fetch `GET /api/addresses`.
-7. **Add/Edit dialog** – reactive form with validation; submit to service.
-8. Snackbar success/error messages.
 
-## Phase 4 – Customer Module *(1 day)*
-1. Add `CustomerDto` fields & validation; FK to Address via `addressId` with `@ManyToOne` on the entity side.
-2. Extend `AddressService` with `findAll()` for dropdown.
-3. Implement `CustomerService`, `CustomerController` (`/api/customers`), tests (include FK validation via service).
-4. Error when `addressId` unknown ➔ returns `422`.
+## Phase 7 – Address UI *(1 day)*
+1. Generate `address` feature module with list + dialog components.
+2. **List page** – MatTable with paginator & filter.  Fetch `GET /addresses`.
+3. **Add/Edit dialog** – reactive form with validation; submit to service.
+4. Snackbar success/error messages.
 
-## Phase 5 – Product Module *(½ day)*
-1. Add numeric validations (2 dp) in `ProductDto`.
-2. CRUD `ProductService` & `ProductController` (`/api/products`) plus tests, similar to Address, backed by `ProductRepository`.
+## Phase 8 – Customer UI *(1 day)*
+1. Similar table setup. Address dropdown pulls from `/addresses`.  
+2. Ensure optimistic UI update after save/delete.  
+3. Client-side validation matching business rules: email required & valid, first/last required.  
+4. Handle **409 Conflict** for duplicate email and display inline error.  
+5. Disable **Delete** action for Customers with existing Orders (backend returns 409; UI shows snackbar).
 
-## Phase 6 – Order Module *(1½ day)*
-1. Implement `OrderHeaderDto`, `OrderLineDto` with nested validation.
-2. `OrderService` persists header & lines atomically using `@Transactional` and two repositories (`OrderHeaderRepository`, `OrderLineRepository`).
-3. `OrderController` CRUD + `/api/orders/{id}/lines` sub-resource.
-4. Pagination & search by `orderDate` range via Spring Data `Specification` or custom JPQL.
-5. Tests for create + invalid FK scenarios.
+## Phase 9 – Product UI *(1 day)*
+1. List & dialog similar to Address.  
+2. Form validators: `sku` required (async uniqueness check), `price` positive, `stockQuantity` non-negative.  
+3. Display badge when product is inactive; disable "Add to Order" interactions.
 
-## Phase 7 – Customer UI *(1 day)*
-1. Generate `customer` feature module with list + dialog components.
-2. **List page** – MatTable with paginator & filter.  Fetch `GET /api/customers`.
-3. **Add/Edit dialog** – reactive form with validation; Address dropdown pulls from `/api/addresses`.
-4. Ensure optimistic UI update after save/delete.
-
-## Phase 8 – Product UI *(½ day)*
-Generate `product` feature module with list + dialog components.
-**List page** – MatTable with paginator & filter.  Fetch `GET /api/products`.
-**Add/Edit dialog** – numeric inputs with `mat-numeric` directive; submit to service.
-Snackbar success/error messages.
-
-## Phase 9 – Order UI *(1½ day)*
-1. Header table with date filter.
+## Phase 10 – Order UI *(2 days)*
+1. Header table with date filter and status chips (`NEW`, `PAID`, `SHIPPED`, `CANCELLED`).  
 2. **OrderDialogComponent**  
-   • Step 1 – header fields  
-   • Step 2 – order lines sub-table (add/edit/remove).  
-3. Submit combined payload to backend (`POST /api/orders`); show inline form errors.
-4. Add **lines** table page (`/api/orders/{id}/lines`) with inline edit/delete.
+   • Step 1 – header fields (customer, date).  
+   • Step 2 – order lines sub-table (add/edit/remove) with product autocomplete & quantity input.  
+   • Live calculation of line totals and order total.  
+   • Validation: at least one line, positive quantity, stock check on quantity change (calls `/products/{id}/stock`).  
+3. On submit align to backend business rules; show snackbar for rule violations (e.g., insufficient stock, immutable status).  
+4. Allow status change via action menu; disable illegal transitions in UI state machine.
 
-## Phase 10 – Polish & Docs *(1 day)*
+## Phase 11 – Polish & Docs *(1 day)*
 1. Lint fixes (Checkstyle & ESLint) + bump test coverage ≥ 70 %.
 2. Add README sections for new setup & Swagger link.
 3. Create GitHub Action (build & test only – docker skipped).
 
-## Phase 11 – Handover *(½ day)*
+## Phase 12 – Handover *(½ day)*
 1. Tag **v1.0.0**.  
 2. Demo script / screenshots added to README.
 
