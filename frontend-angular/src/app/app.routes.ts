@@ -13,7 +13,7 @@ export const routes: Routes = [
     component: MainLayoutComponent,
     children: [
       { path: 'addresses', canActivate: [authGuard], loadChildren: () => import('./modules/features/address/address.routes').then(mod => mod.routes) },
-      { path: 'customers', canActivate: [authGuard], loadComponent: () => import('./modules/general/not-found/not-found').then(mod => mod.NotFound) },
+      { path: 'customers', canActivate: [authGuard], loadChildren: () => import('./modules/features/customer/customer.routes').then(mod => mod.routes) },
       { path: 'products', canActivate: [authGuard], loadComponent: () => import('./modules/general/not-found/not-found').then(mod => mod.NotFound) },
       { path: 'orders', canActivate: [authGuard], loadComponent: () => import('./modules/general/not-found/not-found').then(mod => mod.NotFound) }
     ]

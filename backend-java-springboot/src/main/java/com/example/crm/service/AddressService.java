@@ -23,6 +23,11 @@ public class AddressService {
     }
 
     @Transactional(readOnly = true)
+    public java.util.List<Address> findAll() {
+        return repository.findAll();
+    }
+
+    @Transactional(readOnly = true)
     public Address findById(Long id) {
         return repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Address not found"));

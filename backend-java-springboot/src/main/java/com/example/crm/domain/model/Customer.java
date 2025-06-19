@@ -7,14 +7,21 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.Instant;
 
 @Entity
-@Table(name = "customers")
+@Table(name = "customers", indexes = {
+        @Index(name = "idx_customer_address_id", columnList = "address_id")
+})
 public class Customer {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "first_name")
     private String firstName;
+
+    @Column(name = "last_name")
     private String lastName;
+
+    @Column(name = "email")
     private String email;
 
     @ManyToOne(fetch = FetchType.LAZY)
