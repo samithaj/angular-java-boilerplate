@@ -59,6 +59,15 @@ export class ProductDialogComponent implements OnInit {
   ngOnInit(): void {
     this.categories$ = this.categoryService.list();
     this.subcategories$ = this.subCategoryService.list();
+
+    if (this.data?.subCategoryId) {
+      this.subCategoryService.list().subscribe(subs => {
+        const found = subs.find(sub => sub.id === this.data!.subCategoryId);
+        if (found) {
+          this.loadSubCategoriesByCategory(found.categoryId);
+        }
+      });
+    }
   }
 
   loadSubCategoriesByCategory(categoryId: number) {

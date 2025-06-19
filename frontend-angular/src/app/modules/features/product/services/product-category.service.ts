@@ -13,4 +13,12 @@ export class ProductCategoryService {
   list(): Observable<ProductCategory[]> {
     return this.http.get<ProductCategory[]>(this.baseUrl);
   }
+
+  save(category: ProductCategory): Observable<ProductCategory> {
+    if (category.id) {
+      return this.http.put<ProductCategory>(`${this.baseUrl}/${category.id}`, category);
+    }
+
+    return this.http.post<ProductCategory>(this.baseUrl, category);
+  }
 }

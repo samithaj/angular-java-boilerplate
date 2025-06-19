@@ -15,4 +15,12 @@ export class ProductSubCategoryService {
 
     return this.http.get<ProductSubCategory[]>(url);
   }
+
+  save(subCategory: ProductSubCategory): Observable<ProductSubCategory> {
+    if (subCategory.id) {
+      return this.http.put<ProductSubCategory>(`${this.baseUrl}/${subCategory.id}`, subCategory);
+    }
+
+    return this.http.post<ProductSubCategory>(this.baseUrl, subCategory);
+  }
 }
