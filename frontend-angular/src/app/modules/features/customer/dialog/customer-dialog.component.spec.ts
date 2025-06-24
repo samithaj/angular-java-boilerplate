@@ -14,7 +14,7 @@ describe('CustomerDialogComponent', () => {
       imports: [HttpClientTestingModule, CustomerDialogComponent],
       providers: [
         { provide: MAT_DIALOG_DATA, useValue: null },
-        { provide: MatDialogRef, useValue: { close: () => {} } },
+        { provide: MatDialogRef, useValue: { close: () => null } },
         AddressService
       ]
     }).compileComponents();

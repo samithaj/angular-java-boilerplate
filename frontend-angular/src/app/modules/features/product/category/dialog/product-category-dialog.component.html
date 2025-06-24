@@ -1,0 +1,11 @@
+<form [formGroup]="form" fxLayout="column" fxLayoutGap="10px">
+  <mat-form-field>
+    <mat-label>Name</mat-label>
+    <input matInput formControlName="name" />
+  </mat-form-field>
+
+  <div fxLayout="row" fxLayoutAlign="end center" fxLayoutGap="10px">
+    <button mat-raised-button color="primary" (click)="submit()">Save</button>
+    <button mat-raised-button (click)="cancel()">Cancel</button>
+  </div>
+</form>
