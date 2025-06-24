@@ -150,11 +150,16 @@ cd angular-app
 cd frontend-angular
 npm install
 npm start
-mvn clean compile jetty:run 
-mvn clean compile 
-
-mvn spring-boot:run         # compiles & launches on http://localhost:8080
 # http://localhost:4200
+```
+
+### ▶️ Backend Java Spring Boot
+
+```bash
+cd backend-java-springboot
+mvn clean compile
+mvn spring-boot:run
+# http://localhost:8080
 ```
 
 
