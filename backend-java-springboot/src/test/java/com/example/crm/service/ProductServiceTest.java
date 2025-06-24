@@ -1,7 +1,7 @@
 package com.example.crm.service;
 
 import com.example.crm.domain.model.Product;
-import com.example.crm.domain.repository.OrderRepository;
+import com.example.crm.domain.repository.OrderLineRepository;
 import com.example.crm.domain.repository.ProductRepository;
 import com.example.crm.exception.DuplicateSkuException;
 import org.junit.jupiter.api.Test;
@@ -17,9 +17,9 @@ public class ProductServiceTest {
 
     ProductRepository productRepository = mock(ProductRepository.class);
     ProductSubCategoryService subCategoryService = mock(ProductSubCategoryService.class);
-    OrderRepository orderRepository = mock(OrderRepository.class);
+    OrderLineRepository orderLineRepository = mock(OrderLineRepository.class);
 
-    ProductService service = new ProductService(productRepository, subCategoryService, orderRepository);
+    ProductService service = new ProductService(productRepository, subCategoryService, orderLineRepository);
 
     @Test
     void create_duplicateSku_throwsException() {

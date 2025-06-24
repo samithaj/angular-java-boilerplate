@@ -1,7 +1,7 @@
 package com.example.crm.service;
 
 import com.example.crm.domain.model.Product;
-import com.example.crm.domain.repository.OrderRepository;
+import com.example.crm.domain.repository.OrderLineRepository;
 import com.example.crm.domain.repository.ProductRepository;
 import com.example.crm.exception.DuplicateSkuException;
 import com.example.crm.exception.ResourceNotFoundException;
@@ -17,9 +17,9 @@ import java.math.BigDecimal;
 public class ProductService {
     private final ProductRepository repository;
     private final ProductSubCategoryService subCategoryService;
-    private final OrderRepository orderRepository;
+    private final OrderLineRepository orderRepository;
 
-    public ProductService(ProductRepository repository, ProductSubCategoryService subCategoryService, OrderRepository orderRepository) {
+    public ProductService(ProductRepository repository, ProductSubCategoryService subCategoryService, OrderLineRepository orderRepository) {
         this.repository = repository;
         this.subCategoryService = subCategoryService;
         this.orderRepository = orderRepository;
