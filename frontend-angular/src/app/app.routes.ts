@@ -15,7 +15,7 @@ export const routes: Routes = [
       { path: 'addresses', canActivate: [authGuard], loadChildren: () => import('./modules/features/address/address.routes').then(mod => mod.routes) },
       { path: 'customers', canActivate: [authGuard], loadChildren: () => import('./modules/features/customer/customer.routes').then(mod => mod.routes) },
       { path: 'products', canActivate: [authGuard], loadChildren: () => import('./modules/features/product/product.routes').then(mod => mod.routes) },
-      { path: 'orders', canActivate: [authGuard], loadChildren: () => import('./modules/features/order/order.routes').then(mod => mod.default) }
+      { path: 'orders', canActivate: [authGuard], loadChildren: () => import('./modules/features/order/order.routes') }
     ]
   },
 

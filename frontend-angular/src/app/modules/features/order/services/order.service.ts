@@ -23,4 +23,16 @@ export class OrderService {
   create(order: Order): Observable<Order> {
     return this.http.post<Order>(this.baseUrl, order);
   }
+
+  get(id: number): Observable<Order> {
+    return this.http.get<Order>(`${this.baseUrl}/${id}`);
+  }
+
+  update(order: Order): Observable<Order> {
+    return this.http.put<Order>(`${this.baseUrl}/${order.id}`, order);
+  }
+
+  delete(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${id}`);
+  }
 }
