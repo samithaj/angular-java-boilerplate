@@ -4,8 +4,6 @@ import com.example.crm.domain.model.ProductCategory;
 import com.example.crm.domain.repository.ProductCategoryRepository;
 import com.example.crm.domain.repository.ProductSubCategoryRepository;
 import com.example.crm.exception.ResourceNotFoundException;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,8 +19,8 @@ public class ProductCategoryService {
     }
 
     @Transactional(readOnly = true)
-    public Page<ProductCategory> findAll(Pageable pageable) {
-        return repository.findAll(pageable);
+    public java.util.List<ProductCategory> findAll() {
+        return repository.findAll();
     }
 
     @Transactional(readOnly = true)

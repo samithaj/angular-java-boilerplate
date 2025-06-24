@@ -4,14 +4,9 @@ import com.example.crm.domain.model.ProductCategory;
 import com.example.crm.service.ProductCategoryService;
 import com.example.crm.web.dto.ProductCategoryDto;
 import com.example.crm.web.dto.ProductCategoryMapper;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.enums.ParameterIn;
-import jakarta.validation.Valid;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/v1/product-categories")
@@ -25,9 +20,8 @@ public class ProductCategoryController {
     }
 
     @GetMapping
-    public Page<ProductCategoryDto> list(
-            @PageableDefault(size = 10, sort = "id") Pageable pageable) {
-        return service.findAll(pageable).map(mapper::toDto);
+    public java.util.List<ProductCategoryDto> list() {
+        return service.findAll().stream().map(mapper::toDto).toList();
     }
 
     @GetMapping("/{id}")

@@ -50,10 +50,7 @@
 ![Angular](https://img.shields.io/badge/angular-20-red)
 ![Node](https://img.shields.io/badge/node-22.x-blue)
 ![Java](https://img.shields.io/badge/java-21-brightgreen)
-![Docker](https://img.shields.io/badge/Docker-24.x-blue?logo=docker)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/ganatan/angular-app/blob/master/LICENSE)
 
----
 
 ## 📚 Table of Contents
 
@@ -90,16 +87,6 @@
 - **`frontend-angular`**  
   Angular 19 app (with Routing, Lazy loading, SSR, PWA, SEO)
 
-### 🚀 Backends
-
-- **`backend-javascript ESM`**  
-  Express.js API in JavaScript (ESM) with PostgreSQL, MySQL or mock data
-
-- **`backend-javascript commonjs`**  
-  Express.js API in JavaScript (CJS) with PostgreSQL, MySQL or mock data
-
-- **`backend-typescript`**  
-  Express.js API in TypeScript with PostgreSQL, MySQL or mock data
 
 ---
 
@@ -163,85 +150,12 @@ cd angular-app
 cd frontend-angular
 npm install
 npm start
+mvn clean compile jetty:run 
+mvn clean compile 
+
+mvn spring-boot:run         # compiles & launches on http://localhost:8080
 # http://localhost:4200
 ```
 
-### ▶️ Backend JavaScript ESM
-
-```bash
-cd backend-javascript-esm
-npm install
-npm start
-# http://localhost:3000
-```
-
-### ▶️ Backend JavaScript CJS
-
-```bash
-cd backend-javascript-cjs
-npm install
-npm start
-# http://localhost:3000
-```
-
-### ▶️ Backend TypeScript
-
-```bash
-cd backend-typescript
-npm install
-npm start
-# http://localhost:3000
-```
-
----
 
 
-## 🐳 Deployment with Docker
-
-### ▶️ Prerequisites
-- Docker must be installed on your machine: [Install Docker](https://docs.docker.com/get-docker/)
-
-### ▶️ Launch the Angular frontend with Docker
-
-```bash
-docker pull ganatan/frontend-angular
-docker run -d -p 4200:4200 ganatan/frontend-angular
-# http://localhost:4200
-```
-
-### ▶️ Launch the JavaScript ESM backend with Docker
-
-```bash
-docker pull ganatan/backend-javascript-esm
-docker run -d -p 8080:8080 ganatan/backend-javascript-esm
-# http://localhost:8080
-```
-
-### ▶️ Launch the JavaScript CJS backend with Docker
-
-```bash
-docker pull ganatan/backend-javascript-cjs
-docker run -d -p 8080:8080 ganatan/backend-javascript-cjs
-# http://localhost:8080
-```
-
-### ▶️ Launch the Typescript backend with Docker
-
-```bash
-docker pull ganatan/backend-typescript
-docker run -d -p 8080:8080 ganatan/backend-typescript
-# http://localhost:8080
-```
-
----
-
-## 👤 Author
-
-- **Danny** – [www.ganatan.com](https://www.ganatan.com)
-
----
-
-## 📚 Documentation
-
-- 🇫🇷 [French tutorials](https://www.ganatan.com/tutorials)  
-- 🇬🇧 [English tutorials](https://www.ganatan.com/en/tutorials)
