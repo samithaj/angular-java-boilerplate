@@ -204,12 +204,17 @@ maven repos have issue downloding
    • Unit & integration tests for hierarchy constraints (duplicate `sku`, blocked deletes) and pricing/stock rules.  
    • WebMvc tests for filter endpoints and conflict scenarios.
 
-## Phase 5 – Order Module *(2 days)*
+## Phase 5 – Order Module *(3 days)*
+
+### Backend (`/backend-java-springboot`)
 1. **DTOs**  
    • `OrderHeaderDto` (id, orderDate, status, customerId, totalAmount **readonly**).  
    • `OrderLineDto` (productId, quantity, unitPrice **readonly**, lineTotal **readonly**) with nested validation.
-
-2. **Business Rules**  
+2. **Entities & Repository Layer**  
+   • Create `OrderHeader` and `OrderLine` JPA entities (one-to-many relationship, optimistic locked).  
+   • MapStruct mappers for DTO ↔ Entity.  
+   • `OrderHeaderRepository`, `OrderLineRepository` extending `JpaRepository`.
+3. **Business Rules**  
    • An Order must contain at least **one** OrderLine.  
    • `orderDate` cannot be in the future.  
    • Allowed `status` values: `NEW`, `PAID`, `SHIPPED`, `CANCELLED`.  
@@ -220,17 +225,40 @@ maven repos have issue downloding
    • Creating an order decrements product stock atomically; cancelling restores stock.  
    • Orders in `SHIPPED` status are **immutable** (no update or delete).  
    • Optimistic locking on `OrderHeader` & `Product` to handle concurrent stock updates.
+4. **Service Layer**  
+   • `OrderService` orchestrates header/lines persistence inside a single `@Transactional` block (`REQUIRES_NEW`).  
+   • Publishes domain events `OrderCreated`, `OrderCancelled` for future integrations.
+5. **Controller**  
+   • Expose `/api/v1/orders` CRUD endpoints + `PATCH /api/v1/orders/{id}/status` for status transitions.  
+   • Pagination on list endpoint, filter by `status` and `customerId`.
+6. **Testing**  
+   • Unit tests for business rules (future date, no lines, insufficient stock, immutable order).  
+   • `@WebMvcTest(OrderController.class)` happy paths and error scenarios.  
+   • Integration tests with Testcontainers verifying stock decrement and optimistic locking.
 
-3. **Service Layer**  
-   • `OrderService` orchestrates header/lines persistence inside a single `@Transactional` block (`REQUIRES_NEW` isolation).  
-   • Emits domain events `OrderCreated`, `OrderCancelled` for future integrations.
+### Frontend (`/frontend-angular`)
+1. **Module Setup**  
+   `ng g m modules/features/order --route=orders --module app.routes`
+2. **OrderListComponent**  
+   • Header table with date filter, status chips, pagination & sort.  
+   • Calls `OrderService.list()` mapped from backend `Page<OrderHeaderDto>`.  
+   • Row actions: view / edit / delete / change-status.
+3. **OrderDialogComponent**  
+   • Material Stepper form:  
+     – Step 1 – header fields (customer, orderDate).  
+     – Step 2 – order lines sub-table (add/edit/remove) with product autocomplete & quantity input.  
+   • Live calculation of line totals and overall total.  
+   • Client-side validation: at least one line, positive quantity, stock ≥ quantity.  
+   • On submit invoke `create` / `update` endpoints and return saved order.
+4. **OrderService** (`src/app/modules/features/order/services/order.service.ts`) targeting `/api/v1/orders`.
+5. **StatusChangeDialogComponent** allowing transitions; disables illegal moves per backend rules.
+6. **UX / Error Handling**  
+   • Global snackbar for success / error; maps backend `ProblemDetail` to messages (insufficient stock, immutable order, etc.).
+7. **Unit Tests**  
+   • Components render & validate.  
+   • Services call correct endpoints using `HttpTestingController`.
 
-4. **Controller**  
-   • Standard CRUD + `PATCH /api/v1/orders/{id}/status` endpoint for status transitions.
-
-5. **Testing**  
-   • Happy path create/pay/ship/cancel.  
-   • Rule violations: future date, no lines, insufficient stock, duplicate order per customer/day, modify shipped order.
+✅ End-to-end: Creating, updating, cancelling & shipping Orders works in UI; product stock adjusts; all tests green.
 
 ## Phase 6 – Frontend Scaffolding *(½ day)*
 1. Install Angular Material + flex-layout.  
@@ -238,34 +266,6 @@ maven repos have issue downloding
 2. Create **core layout**: `MainLayoutComponent` with toolbar & tabs (router-links): Address | Customer | Product | Order.
 3. Route guard placeholder (no auth).
 4. Mock-API base url constant (`/api`).
-
-## Phase 7 – Address UI *(1 day)*
-1. Generate `address` feature module with list + dialog components.
-2. **List page** – MatTable with paginator & filter.  Fetch `GET /addresses`.
-3. **Add/Edit dialog** – reactive form with validation; submit to service.
-4. Snackbar success/error messages.
-
-## Phase 8 – Customer UI *(1 day)*
-1. Similar table setup. Address dropdown pulls from `/addresses`.  
-2. Ensure optimistic UI update after save/delete.  
-3. Client-side validation matching business rules: email required & valid, first/last required.  
-4. Handle **409 Conflict** for duplicate email and display inline error.  
-5. Disable **Delete** action for Customers with existing Orders (backend returns 409; UI shows snackbar).
-
-## Phase 9 – Product UI *(1 day)*
-1. List & dialog similar to Address.  
-2. Form validators: `sku` required (async uniqueness check), `price` positive, `stockQuantity` non-negative.  
-3. Display badge when product is inactive; disable "Add to Order" interactions.
-
-## Phase 10 – Order UI *(2 days)*
-1. Header table with date filter and status chips (`NEW`, `PAID`, `SHIPPED`, `CANCELLED`).  
-2. **OrderDialogComponent**  
-   • Step 1 – header fields (customer, date).  
-   • Step 2 – order lines sub-table (add/edit/remove) with product autocomplete & quantity input.  
-   • Live calculation of line totals and order total.  
-   • Validation: at least one line, positive quantity, stock check on quantity change (calls `/products/{id}/stock`).  
-3. On submit align to backend business rules; show snackbar for rule violations (e.g., insufficient stock, immutable status).  
-4. Allow status change via action menu; disable illegal transitions in UI state machine.
 
 ## Phase 11 – Polish & Docs *(1 day)*
 1. Lint fixes (Checkstyle & ESLint) + bump test coverage ≥ 70 %.
