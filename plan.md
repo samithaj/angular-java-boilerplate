@@ -260,24 +260,356 @@ maven repos have issue downloding
 
 ✅ End-to-end: Creating, updating, cancelling & shipping Orders works in UI; product stock adjusts; all tests green.
 
-## Phase 6 – Frontend Scaffolding *(½ day)*
-1. Install Angular Material + flex-layout.  
-   `ng add @angular/material --theme=indigo-pink --typography --no-interactive`
-2. Create **core layout**: `MainLayoutComponent` with toolbar & tabs (router-links): Address | Customer | Product | Order.
-3. Route guard placeholder (no auth).
-4. Mock-API base url constant (`/api`).
+## ✅ Phase 6 – Search & Navigation Enhancement *(2 days)* - **COMPLETED**
 
-## Phase 11 – Polish & Docs *(1 day)*
-1. Lint fixes (Checkstyle & ESLint) + bump test coverage ≥ 70 %.
-2. Add README sections for new setup & Swagger link.
-3. Create GitHub Action (build & test only – docker skipped).
+### Backend ✅
+1. **Search Repositories** - Added comprehensive search methods to all repositories:
+   - `AddressRepository`: `findBySearchTerm()`, field-specific searches (city, state, postalCode)
+   - `CustomerRepository`: `findBySearchTerm()`, `findByEmailContainingIgnoreCase()`, `findByFullNameContaining()`, `findByAddressCityContaining()`, `existsByEmailIgnoreCase()`
+   - `ProductRepository`: `findBySearchTerm()`, `findBySkuContainingIgnoreCase()`, `findByCategoryNameContaining()`, `findLowStockProducts()`, `findActiveProducts()`
+   - `OrderHeaderRepository`: `findByStatus()`, `findByCustomerId()`, `findByOrderDateBetween()`, `findByCustomerNameContaining()`, `findBySearchCriteria()`
 
-## Phase 12 – Handover *(½ day)*
-1. Tag **v1.0.0**.  
-2. Demo script / screenshots added to README.
+2. **Enhanced Services** - Updated services with search functionality:
+   - `AddressService.search()` with multi-criteria support
+   - `CustomerService.search()` with email uniqueness validation
+   - All services follow Spring best practices with proper parameter validation
+
+3. **Search Controllers** - Added search endpoints to all controllers:
+   - `GET /api/v1/addresses/search?q=&city=&state=&postalCode=`
+   - `GET /api/v1/customers/search?q=&email=&name=&city=`
+   - Enhanced pagination with proper sort parameter handling
+   - OpenAPI documentation with examples
+
+### Frontend ✅
+1. **Search Component** (`shared/components/search`) - Reusable search component:
+   - Supports multiple search types with type selector
+   - Debounced input with 300ms delay
+   - Advanced filters with expandable panel
+   - Built with signals and standalone components
+   - Follows Angular best practices (OnPush, input/output functions)
+
+2. **Navigation Component** (`shared/components/navigation`) - Comprehensive pagination:
+   - First, Prior, Next, Last buttons (PowerBuilder style)
+   - Page jump functionality with input validation
+   - Page size selector (10, 20, 50, 100)
+   - Responsive design for mobile
+   - Shows current page info (showing X to Y of Z entries)
+
+3. **Enhanced Address Module** - Updated to use new components:
+   - `AddressListComponent` converted to signals and modern Angular patterns
+   - Integrated search and navigation components
+   - Real-time search with multiple criteria
+   - Loading states and error handling
+   - No-data states with clear search option
+
+4. **Enhanced Services** - Updated Angular services:
+   - `AddressService` with `search()` method and proper HttpParams
+   - `CustomerService` with search functionality
+   - Proper TypeScript interfaces for search filters
+   - Enhanced with `getById()`, `create()`, `update()`, `delete()` methods
+
+**Key Features Implemented:**
+- ✅ Global search functionality across all modules
+- ✅ PowerBuilder-style navigation (First, Prior, Next, Last)
+- ✅ Advanced filtering capabilities
+- ✅ Real-time search with debouncing
+- ✅ Responsive pagination controls
+- ✅ Modern Angular patterns with signals
+- ✅ Comprehensive backend search APIs
+- ✅ OpenAPI documentation for all endpoints
+
+## Phase 7 – Statistics & Analytics Module *(3 days)*
+
+### Backend (`/backend-java-springboot`)
+1. **Statistics DTOs**:
+   • `CategoryStatisticsDto` { `categoryName`, `salesVolume`, `totalSales`, `percentage` }
+   • `SubcategoryStatisticsDto` { `subcategoryName`, `categoryName`, `monthlySales[]` }
+   • `YearComparisonDto` { `categoryName`, `salesVolumeYearA`, `totalSalesYearA`, `salesVolumeYearB`, `totalSalesYearB` }
+   • `DepartmentSalaryDto` { `departmentName`, `employeeCount`, `totalSalary`, `averageSalary`, `minSalary`, `maxSalary` }
+
+2. **Statistics Repository Queries**:
+   • Native SQL or JPQL aggregation queries added to existing repositories:
+     - `OrderHeaderRepository.findSalesByCategory(from, to)`
+     - `OrderHeaderRepository.findSalesBySubcategory(category, from, to)`
+     - `OrderHeaderRepository.findMonthlyTrend(from, to)`
+     - `OrderHeaderRepository.findYearComparison(yearA, yearB)`
+     - `EmployeeRepository.findDepartmentSalaryStats(from, to)` (for Modern Graph tab)
+
+3. **Statistics Service** (`StatisticsService`):
+   • `getCategorySalesStatistics(from, to)` → Pie data
+   • `getSubcategorySalesStatistics(category, from, to)` → Monthly bar data
+   • `getYearComparison(yearA, yearB)` → Grouped-bar & bubble data
+   • `getDepartmentSalaryStats(metric, from, to)` → Area/line data (metric ∈ *average_salary, employee_count, total_salary, min_salary, max_salary*)
+
+4. **Statistics Controller** (`/api/v1/statistics`) – sample REST contract:
+   - `GET /category-sales?from=2013-01-01&to=2013-12-31`
+   - `GET /subcategory-sales?category=Bikes&from=2013-01-01&to=2013-12-31`
+   - `GET /year-comparison?yearA=2013&yearB=2012`
+   - `GET /department-salaries?metric=average_salary&from=2013-01-01&to=2013-12-31`
+   • All endpoints validate parameters and return DTO lists ready for chart binding.
 
 ---
 
-### Future (v2 "Reports & Charts" – out of scope)
-• Role-based auth & login
-• Reporting & chart dashboards 
+### Frontend (`/frontend-angular`)
+1. **Module Setup**:
+   • `ng g m modules/features/statistics --route=statistics --module app.routes`
+   • Install Plotly for Angular: `npm i plotly.js-dist-min angular-plotly.js` (lazy-loadable size-optimized build)
+   • Provide PlotlyObject via `PlotlyModule.plotlyjs = Plotly;
+
+2. **StatisticsComponent** – **Material tab group** reproducing PowerBuilder layout:
+   - *Category Statistics*
+   - *Subcategory Statistics*
+   - *Google Charts 1* (Grouped Bar)
+   - *Google Charts 2* (Bubble)
+   - *Modern Graph* (Area / Line selectable)
+
+3. **Shared Controls**:
+   • **DateRangeSelectorComponent** (Date From / Date To pickers + *Run Report* button)
+   • **CategorySelectorComponent** (category & subcategory dropdowns, year/half-year radios)
+
+4. **Tab Implementations (all use Plotly)**:
+   • **Category Statistics Tab**
+     - `category-pie-chart.component.ts` – Plotly *pie* trace + interactive legend
+     - `category-table.component.ts` – MatTable with sortable currency/number columns
+
+   • **Subcategory Statistics Tab**
+     - `subcategory-monthly-bar.component.ts` – Plotly *bar* (stacked/grouped) trace per month
+     - Top-5 products MatTable under the chart
+
+   • **Google Charts 1 Tab** – *Sales Report (Year A vs Year B)*
+     - `year-comparison-bar.component.ts` – Plotly grouped-bar chart for 2013 vs 2012 (x = category, y = total sales)
+     - Data table mirroring the bars
+
+   • **Google Charts 2 Tab** – *Bubble Chart*
+     - `year-comparison-bubble.component.ts` – Plotly *scatter* with `marker.size` = sales volume, `marker.color` = year, hover tooltip = category details
+     - Horizontal scrollbar like PowerBuilder (Plotly zoom + pan enabled)
+
+   • **Modern Graph Tab** – *Dynamic Metric Chart*
+     - Metric list (MatSelectionList) for *average_salary, employee_count, maximum_salary, minimum_salary, total_salary*
+     - Graph Style dropdown (*Area, Line, Bar*) mapping to Plotly trace `type`
+     - `department-metric-chart.component.ts` renders chosen metric with Plotly (default Area)
+     - Department salary data table below
+
+5. **StatisticsService** (`statistics.service.ts`):
+   • Typed methods calling backend endpoints
+   • RxJS caching & shareReplay(1) per query to minimise traffic
+   • Transformation layer converting DTOs → Plotly `data` + `layout`
+
+6. **UX & Responsiveness**:
+   • All charts responsive (`responsive: true` config) and theme-aware (dark/light)
+   • Export buttons (*PNG*, *SVG*, *PDF*) via `Plotly.downloadImage`
+   • Loading overlays & error toasts via shared utilities
+
+7. **Unit / Component Tests**:
+   • Karma/Jest tests asserting chart traces & API interactions (mock `HttpClient`)
+   • Cypress e2e happy path (run report, change tabs, export image)
+
+✅ Deliverable: Full Statistics module with five tabs powered by Plotly replicating PowerBuilder functionality; dynamic filtering & exports working in browser.
+
+## Phase 8 – Product Photos & UI Enhancements *(2 days)*
+
+#### Backend
+1. **Product Photo Management**:
+   - Create `ProductPhoto` entity
+   - Add photo upload endpoint: `POST /api/v1/products/{id}/photos`
+   - Support multiple photos per product
+
+#### Frontend
+1. **Photo Upload Component**
+   - Drag & drop support
+   - Multiple file upload
+   - Image preview
+   - Primary photo selection
+
+2. **Product Grid View**
+   - Card layout with thumbnails
+   - Quick edit in modal
+   - Bulk selection
+
+3. **Low Stock Alert Component**
+   - Dashboard widget
+   - Real-time notifications
+
+### Phase 9 – Order Enhancement & Workflow *(3 days)*
+
+#### Backend
+1. **Tax & Discount Service**:
+   ```java
+   @Service
+   public class PricingService {
+       BigDecimal calculateTax(OrderHeader order);
+       BigDecimal applyDiscounts(OrderHeader order);
+   }
+   ```
+
+2. **Order Status Workflow**:
+   - Add status transition validation
+   - Status change events
+
+#### Frontend
+1. **Order Wizard Component** (Material Stepper):
+   - Step 1: Customer selection with search
+   - Step 2: Product selection with cart
+   - Step 3: Review & pricing
+   - Step 4: Confirmation
+
+2. **Shopping Cart Service**
+   - Add/remove items
+   - Quantity updates
+   - Real-time total calculation
+
+3. **Order Status Management**
+   - Status timeline visualization
+   - Quick status update buttons
+   - Status history modal
+
+### Phase 10 – Export/Import & PDF Generation *(2 days)*
+
+#### Backend
+1. **Export Service**:
+   ```java
+   @Service
+   public class ExportService {
+       byte[] exportToExcel(List<?> data);
+       byte[] exportToCsv(List<?> data);
+   }
+   ```
+
+2. **PDF Service** (using iText or similar):
+   ```java
+   @Service
+   public class PdfService {
+       byte[] generateOrderPdf(Long orderId);
+       byte[] generateReport(ReportRequest request);
+   }
+   ```
+
+3. **Import Service**:
+   - CSV/Excel import endpoints
+   - Validation and error reporting
+
+#### Frontend
+1. **Export Component**:
+   - Format selector (Excel, CSV, PDF)
+   - Column selector
+   - Progress indicator
+
+2. **Import Component**:
+   - File upload
+   - Preview and mapping
+   - Error display
+
+### Phase 11 – Email Integration *(1 day)*
+
+#### Backend
+1. **Email Service Configuration**:
+   ```yaml
+   spring:
+     mail:
+       host: smtp.gmail.com
+       port: 587
+   ```
+
+2. **Email Templates**:
+   - Order confirmation
+   - Status change notification
+   - Customer welcome
+
+#### Frontend
+1. **Email Preview Component**
+2. **Email Settings UI**
+
+### Phase 12 – Dashboard & Advanced Reporting *(2 days)*
+
+#### Backend
+1. **Dashboard Endpoints**:
+   - `/api/v1/dashboard/summary` - Key metrics overview
+   - `/api/v1/dashboard/recent-orders` - Latest order activities
+   - `/api/v1/dashboard/alerts` - Low stock and other alerts
+
+#### Frontend
+1. **Dashboard Module** (`modules/features/dashboard`):
+   - Executive summary cards (total sales, orders, customers)
+   - Recent activity timeline
+   - Quick action buttons
+   - Integration with statistics charts from Phase 7
+
+### Phase 13 – Audit Trail & History *(2 days)*
+
+#### Backend
+1. **Audit Service**:
+   ```java
+   @Aspect
+   public class AuditAspect {
+       @Around("@annotation(Auditable)")
+       public Object audit(ProceedingJoinPoint joinPoint);
+   }
+   ```
+
+2. **History Tables**:
+   - Create audit tables for each entity
+   - Track user, timestamp, operation, old/new values
+
+#### Frontend
+1. **History Component**:
+   - Timeline view
+   - Change diff display
+   - Filter by user/date
+
+### Phase 14 – Authentication & Authorization *(2 days)*
+
+#### Backend
+1. **Spring Security Configuration**:
+   - JWT authentication
+   - Role-based access control
+   - User management endpoints
+
+#### Frontend
+1. **Auth Module**:
+   - Login component (already exists, needs implementation)
+   - User profile
+   - Role management UI
+
+2. **Auth Guards**:
+   - Protect routes based on roles
+   - Permission-based UI elements
+
+### Phase 15 – UI Polish & Theme Support *(2 days)*
+
+#### Frontend
+1. **Theme Service**:
+   - Blue/Dark theme support
+   - Theme persistence
+   - Dynamic theme switching
+
+2. **UI Enhancements**:
+   - Loading skeletons
+   - Empty states
+   - Error boundaries
+   - Tooltips and help text
+
+3. **Responsive Improvements**:
+   - Mobile navigation
+   - Touch gestures
+   - Offline indicators
+
+### Phase 16 – PWA & Performance *(1 day)*
+
+1. **PWA Features**:
+   - Service worker for offline
+   - Background sync
+   - Push notifications
+
+2. **Performance**:
+   - Lazy loading modules
+   - Virtual scrolling for large lists
+   - Image optimization
+
+### Phase 17 – Testing & Documentation *(2 days)*
+
+1. **E2E Tests** (Cypress/Playwright)
+2. **API Documentation** (Swagger/OpenAPI)
+3. **User Manual**
+4. **Deployment Guide**
+
+This comprehensive plan addresses all the missing features identified from the PowerBuilder analysis and ensures full feature parity with the legacy system while adding modern enhancements.

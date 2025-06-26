@@ -2,69 +2,20 @@ import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { MainLayoutComponent } from './core/layout/main-layout.component';
 
-import { Home } from './modules/general/home/home';
 import { NotFound } from './modules/general/not-found/not-found';
 
 export const routes: Routes = [
-  { path: '', component: Home, },
-
   {
     path: '',
     component: MainLayoutComponent,
     children: [
+      { path: '', redirectTo: 'addresses', pathMatch: 'full' },
       { path: 'addresses', canActivate: [authGuard], loadChildren: () => import('./modules/features/address/address.routes').then(mod => mod.routes) },
       { path: 'customers', canActivate: [authGuard], loadChildren: () => import('./modules/features/customer/customer.routes').then(mod => mod.routes) },
       { path: 'products', canActivate: [authGuard], loadChildren: () => import('./modules/features/product/product.routes').then(mod => mod.routes) },
       { path: 'orders', canActivate: [authGuard], loadChildren: () => import('./modules/features/order/order.routes') }
     ]
   },
-
-  {
-    path: 'landing-page',
-    loadComponent: () => import('./modules/examples/example-landing-page/tutorial.component')
-      .then(mod => mod.TutorialComponent)
-  },
-  {
-    path: 'cards',
-    loadComponent: () => import('./modules/examples/example-cards/tutorial.component')
-      .then(mod => mod.TutorialComponent)
-  },
-  {
-    path: 'news',
-    loadComponent: () => import('./modules/examples/example-news/news.component')
-      .then(mod => mod.NewsComponent)
-  },
-  {
-    path: 'boxoffice',
-    loadComponent: () => import('./modules/examples/example-boxoffice/boxoffice.component')
-      .then(mod => mod.BoxofficeComponent)
-  },
-  {
-    path: 'httpclient',
-    loadComponent: () => import('./modules/examples/example-items/items.component')
-      .then(mod => mod.ItemsComponent)
-  },
-  {
-    path: 'bootstrap',
-    loadChildren: () => import(`./modules/examples/example-bootstrap/tutorial.routes`)
-      .then(routes => routes.routes)
-  },
-  {
-    path: 'components',
-    loadComponent: () => import('./modules/examples/example-components/tutorial.component')
-      .then(mod => mod.TutorialComponent)
-  },
-  {
-    path: 'forms',
-    loadChildren: () => import(`./modules/examples/example-forms/tutorial.routes`)
-      .then(routes => routes.routes)
-  },
-  {
-    path: 'services',
-    loadComponent: () => import('./modules/examples/example-services/tutorial.component')
-      .then(mod => mod.TutorialComponent)
-  },
-
 
   {
     path: 'login',
@@ -87,6 +38,7 @@ export const routes: Routes = [
       .then(routes => routes.routes)
   },
 
+  // Keep the CRUD features accessible if needed
   {
     path: 'cities',
     loadComponent: () => import('./modules/features/crud/city/item.component')
@@ -107,7 +59,6 @@ export const routes: Routes = [
     loadComponent: () => import('./modules/features/crud/profession/item.component')
       .then(mod => mod.ItemComponent)
   },
-
   {
     path: 'continents',
     loadComponent: () => import('./modules/features/crud/continent/item.component')
