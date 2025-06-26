@@ -8,7 +8,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
 public interface OrderHeaderRepository extends JpaRepository<OrderHeader, Long> {
     
@@ -36,4 +38,18 @@ public interface OrderHeaderRepository extends JpaRepository<OrderHeader, Long> 
                                            @Param("startDate") LocalDate startDate,
                                            @Param("endDate") LocalDate endDate,
                                            Pageable pageable);
+
+    @Query("SELECT pc.name as categoryName, " +
+           "SUM(ol.quantity) as salesVolume, " +
+           "SUM(ol.lineTotal) as totalSales " +
+           "FROM OrderHeader oh " +
+           "JOIN oh.lines ol " +
+           "JOIN ol.product p " +
+           "JOIN p.subCategory psc " +
+           "JOIN psc.category pc " +
+           "WHERE oh.orderDate BETWEEN :startDate AND :endDate " +
+           "GROUP BY pc.id, pc.name " +
+           "ORDER BY SUM(ol.lineTotal) DESC")
+    List<Object[]> findSalesByCategory(@Param("startDate") LocalDate startDate, 
+                                       @Param("endDate") LocalDate endDate);
 }

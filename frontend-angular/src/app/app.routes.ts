@@ -13,7 +13,12 @@ export const routes: Routes = [
       { path: 'addresses', canActivate: [authGuard], loadChildren: () => import('./modules/features/address/address.routes').then(mod => mod.routes) },
       { path: 'customers', canActivate: [authGuard], loadChildren: () => import('./modules/features/customer/customer.routes').then(mod => mod.routes) },
       { path: 'products', canActivate: [authGuard], loadChildren: () => import('./modules/features/product/product.routes').then(mod => mod.routes) },
-      { path: 'orders', canActivate: [authGuard], loadChildren: () => import('./modules/features/order/order.routes') }
+      { path: 'orders', canActivate: [authGuard], loadChildren: () => import('./modules/features/order/order.routes') },
+      { 
+        path: 'statistics', 
+        canActivate: [authGuard], 
+        loadComponent: () => import('./modules/features/statistics/statistics/statistics').then(mod => mod.Statistics) 
+      }
     ]
   },
 

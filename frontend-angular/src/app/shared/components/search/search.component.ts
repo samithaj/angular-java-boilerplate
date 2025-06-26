@@ -1,4 +1,4 @@
-import { Component, input, output, signal, computed, inject, ChangeDetectionStrategy, OnInit } from '@angular/core';
+import { Component, input, output, signal, computed, inject, ChangeDetectionStrategy, OnInit, DestroyRef } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, FormGroup } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
@@ -118,6 +118,7 @@ export interface SearchCriteria {
 })
 export class SearchComponent implements OnInit {
   private fb = inject(FormBuilder);
+  private destroyRef = inject(DestroyRef);
   
   // Inputs
   config = input.required<SearchConfig>();
@@ -162,7 +163,7 @@ export class SearchComponent implements OnInit {
     this.searchForm.valueChanges.pipe(
       debounceTime(this.debounceMs()),
       distinctUntilChanged(),
-      takeUntilDestroyed()
+      takeUntilDestroyed(this.destroyRef)
     ).subscribe(value => {
       if (value.searchTerm?.trim() || this.showFilters()) {
         this.search.emit({

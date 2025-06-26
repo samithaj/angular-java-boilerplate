@@ -23,9 +23,11 @@ export const appConfig: ApplicationConfig = {
         anchorScrolling: 'enabled',
       }),
     ),
-    provideClientHydration(withEventReplay()), provideServiceWorker('ngsw-worker.js', {
+    provideClientHydration(withEventReplay()),
+    provideServiceWorker('ngsw-worker.js', {
       enabled: !isDevMode(),
       registrationStrategy: 'registerWhenStable:30000'
     })
+    // Plotly will be loaded dynamically in components only when in browser
   ]
 };
