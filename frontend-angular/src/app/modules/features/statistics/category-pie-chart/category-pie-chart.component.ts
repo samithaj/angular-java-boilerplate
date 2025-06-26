@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, SimpleChanges, PLATFORM_ID, Inject, OnInit } from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges, OnInit, PLATFORM_ID, Inject } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { CategoryStatisticsDto } from '../services/statistics.model';
 
@@ -8,16 +8,21 @@ import { CategoryStatisticsDto } from '../services/statistics.model';
   imports: [CommonModule],
   template: `
     <div class="chart-container">
-      <div *ngIf="isBrowser && plotlyLoaded" 
-           #plotlyContainer 
-           id="plotly-chart"
+      <div *ngIf="isBrowser && plotlyLoaded && !loading && !error && data.length > 0" 
+           id="plotly-chart-category"
            [style]="{ width: '100%', height: '500px' }">
       </div>
-      <div *ngIf="!isBrowser || loading" class="loading-overlay">
-        <p>Loading chart...</p>
+      
+      <div *ngIf="loading || !plotlyLoaded" class="loading-overlay">
+        <p>{{ plotlyLoaded ? 'Loading chart data...' : 'Loading chart library...' }}</p>
       </div>
+      
       <div *ngIf="error" class="error-message">
         {{ error }}
+      </div>
+      
+      <div *ngIf="!loading && !error && data.length === 0 && plotlyLoaded" class="no-data-message">
+        <p>No data available for the selected date range</p>
       </div>
     </div>
   `,
@@ -28,7 +33,7 @@ import { CategoryStatisticsDto } from '../services/statistics.model';
       height: 500px;
     }
     
-    .loading-overlay {
+    .loading-overlay, .error-message, .no-data-message {
       position: absolute;
       top: 50%;
       left: 50%;
@@ -40,18 +45,18 @@ import { CategoryStatisticsDto } from '../services/statistics.model';
       background: rgba(255, 255, 255, 0.9);
       padding: 20px;
       border-radius: 4px;
+      text-align: center;
     }
     
     .error-message {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
       color: #f44336;
-      text-align: center;
-      background: rgba(255, 255, 255, 0.9);
-      padding: 20px;
-      border-radius: 4px;
+      border: 1px solid #ffcdd2;
+      background: #ffebee;
+    }
+    
+    .no-data-message {
+      color: #666;
+      font-style: italic;
     }
   `]
 })
@@ -60,13 +65,10 @@ export class CategoryPieChartComponent implements OnInit, OnChanges {
   @Input() loading = false;
   @Input() error: string | null = null;
   
-  plotData: any[] = [];
-  layout: any = {};
-  config: any = {};
   isBrowser = false;
   plotlyLoaded = false;
-  private plotlyInstance: any;
-
+  private plotly: any;
+  
   constructor(@Inject(PLATFORM_ID) private platformId: Object) {
     this.isBrowser = isPlatformBrowser(this.platformId);
   }
@@ -78,15 +80,15 @@ export class CategoryPieChartComponent implements OnInit, OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['data'] && this.data?.length > 0 && this.plotlyLoaded) {
+    if (changes['data'] && this.data?.length > 0 && this.plotlyLoaded && this.isBrowser) {
       this.updateChart();
     }
   }
 
   private async loadPlotly(): Promise<void> {
     try {
-      // Dynamic import of Plotly only in browser
-      this.plotlyInstance = await import('plotly.js-dist-min');
+      // Dynamic import only in browser to avoid SSR issues
+      this.plotly = await import('plotly.js-dist-min');
       this.plotlyLoaded = true;
       
       // Update chart if data is already available
@@ -100,14 +102,13 @@ export class CategoryPieChartComponent implements OnInit, OnChanges {
   }
 
   private updateChart(): void {
-    if (!this.data || this.data.length === 0 || !this.plotlyInstance) {
+    if (!this.plotly || !this.isBrowser || !this.data || this.data.length === 0) {
       return;
     }
 
     const labels = this.data.map(item => item.categoryName);
     const values = this.data.map(item => item.salesVolume);
-    const text = this.data.map(item => `${item.percentage}%`);
-
+    
     // PowerBuilder-style colors (blue dominant)
     const colors = [
       '#3f51b5', // Blue for Bikes (dominant)
@@ -116,11 +117,10 @@ export class CategoryPieChartComponent implements OnInit, OnChanges {
       '#ff9800'  // Orange for Accessories
     ];
 
-    this.plotData = [{
+    const plotData = [{
       type: 'pie',
       labels: labels,
       values: values,
-      text: text,
       textinfo: 'label+percent',
       textposition: 'auto',
       hovertemplate: '<b>%{label}</b><br>' +
@@ -137,7 +137,7 @@ export class CategoryPieChartComponent implements OnInit, OnChanges {
       showlegend: true
     }];
 
-    this.layout = {
+    const layout = {
       title: {
         text: 'Sales Percentage by Category',
         font: { size: 16, family: 'Roboto, sans-serif' }
@@ -154,7 +154,7 @@ export class CategoryPieChartComponent implements OnInit, OnChanges {
       autosize: true
     };
 
-    this.config = {
+    const config = {
       responsive: true,
       displayModeBar: true,
       modeBarButtonsToRemove: ['pan2d', 'lasso2d', 'select2d'],
@@ -167,11 +167,11 @@ export class CategoryPieChartComponent implements OnInit, OnChanges {
       }
     };
 
-    // Use native Plotly.js instead of angular-plotly.js wrapper
+    // Use setTimeout to ensure DOM element exists
     setTimeout(() => {
-      const element = document.getElementById('plotly-chart');
-      if (element && this.plotlyInstance) {
-        this.plotlyInstance.newPlot(element, this.plotData, this.layout, this.config);
+      const element = document.getElementById('plotly-chart-category');
+      if (element && this.plotly) {
+        this.plotly.newPlot(element, plotData, layout, config);
       }
     }, 0);
   }

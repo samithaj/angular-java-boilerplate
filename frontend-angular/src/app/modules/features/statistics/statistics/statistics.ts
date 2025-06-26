@@ -6,12 +6,15 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatNativeDateModule } from '@angular/material/core';
+import { MatSelectModule } from '@angular/material/select';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 
 import { StatisticsService } from '../services/statistics.service';
-import { CategoryStatisticsDto } from '../services/statistics.model';
+import { CategoryStatisticsDto, SubcategoryStatisticsDto } from '../services/statistics.model';
 import { CategoryPieChartComponent } from '../category-pie-chart/category-pie-chart.component';
 import { CategoryTableComponent } from '../category-table/category-table.component';
+import { SubcategoryMonthlyBarComponent } from '../subcategory-monthly-bar/subcategory-monthly-bar.component';
+import { SubcategoryTableComponent } from '../subcategory-table/subcategory-table.component';
 
 @Component({
   selector: 'app-statistics',
@@ -24,9 +27,12 @@ import { CategoryTableComponent } from '../category-table/category-table.compone
     MatButtonModule,
     MatFormFieldModule,
     MatNativeDateModule,
+    MatSelectModule,
     ReactiveFormsModule,
     CategoryPieChartComponent,
-    CategoryTableComponent
+    CategoryTableComponent,
+    SubcategoryMonthlyBarComponent,
+    SubcategoryTableComponent
   ],
   template: `
     <div class="statistics-container">
@@ -47,6 +53,16 @@ import { CategoryTableComponent } from '../category-table/category-table.compone
             <input matInput [matDatepicker]="toPicker" formControlName="to">
             <mat-datepicker-toggle matIconSuffix [for]="toPicker"></mat-datepicker-toggle>
             <mat-datepicker #toPicker></mat-datepicker>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Category Filter (Optional)</mat-label>
+            <mat-select formControlName="categoryFilter">
+              <mat-option value="">All Categories</mat-option>
+              <mat-option *ngFor="let category of availableCategories()" [value]="category">
+                {{ category }}
+              </mat-option>
+            </mat-select>
           </mat-form-field>
 
           <button mat-raised-button color="primary" (click)="runReport()" [disabled]="loading()">
@@ -75,7 +91,17 @@ import { CategoryTableComponent } from '../category-table/category-table.compone
 
         <mat-tab label="Subcategory Statistics">
           <div class="tab-content">
-            <p>Subcategory charts will be implemented next</p>
+            <div class="chart-section">
+              <app-subcategory-monthly-bar 
+                [data]="subcategoryData()" 
+                [isLoading]="loading()" 
+                [errorMessage]="error()">
+              </app-subcategory-monthly-bar>
+            </div>
+            
+            <div class="table-section">
+              <app-subcategory-table [data]="subcategoryData()"></app-subcategory-table>
+            </div>
           </div>
         </mat-tab>
 
@@ -152,13 +178,16 @@ export class Statistics implements OnInit {
   
   // Reactive signals for state management
   categoryData = signal<CategoryStatisticsDto[]>([]);
+  subcategoryData = signal<SubcategoryStatisticsDto[]>([]);
+  availableCategories = signal<string[]>([]);
   loading = signal(false);
   error = signal<string | null>(null);
 
   // Form for date controls
   dateForm = new FormGroup({
-          from: new FormControl(new Date('2025-06-01')),
-      to: new FormControl(new Date('2025-06-30'))
+    from: new FormControl(new Date('2025-01-01')),
+    to: new FormControl(new Date('2025-12-31')),
+    categoryFilter: new FormControl('')
   });
 
   constructor(private statisticsService: StatisticsService) {}
@@ -171,6 +200,7 @@ export class Statistics implements OnInit {
   runReport(): void {
     const fromDate = this.dateForm.get('from')?.value;
     const toDate = this.dateForm.get('to')?.value;
+    const categoryFilter = this.dateForm.get('categoryFilter')?.value || null;
 
     if (!fromDate || !toDate) {
       this.error.set('Please select valid date range');
@@ -180,19 +210,33 @@ export class Statistics implements OnInit {
     this.loading.set(true);
     this.error.set(null);
 
+    // Always fetch fresh data – clear cached observables first
+    this.statisticsService.clearCache();
+
     const fromStr = this.formatDate(fromDate);
     const toStr = this.formatDate(toDate);
 
-    this.statisticsService.getCategorySalesStatistics(fromStr, toStr).subscribe({
-      next: (data) => {
-        this.categoryData.set(data);
-        this.loading.set(false);
-      },
-      error: (err) => {
-        console.error('Error loading category statistics:', err);
-        this.error.set('Failed to load statistics data');
-        this.loading.set(false);
+    // Load both category and subcategory statistics
+    Promise.all([
+      this.statisticsService.getCategorySalesStatistics(fromStr, toStr).toPromise(),
+      this.statisticsService.getSubcategorySalesStatistics(categoryFilter, fromStr, toStr).toPromise()
+    ]).then(([categoryData, subcategoryData]) => {
+      this.categoryData.set(categoryData || []);
+      this.subcategoryData.set(subcategoryData || []);
+      
+      // Update available categories
+      const categories = [...new Set((categoryData || []).map(cat => cat.categoryName))];
+      this.availableCategories.set(categories);
+      
+      this.loading.set(false);
+      // Trigger window resize to ensure Plotly charts hidden in inactive tabs are correctly resized when shown
+      if (typeof window !== 'undefined') {
+        setTimeout(() => window.dispatchEvent(new Event('resize')), 0);
       }
+    }).catch((err) => {
+      console.error('Error loading statistics:', err);
+      this.error.set('Failed to load statistics data');
+      this.loading.set(false);
     });
   }
 

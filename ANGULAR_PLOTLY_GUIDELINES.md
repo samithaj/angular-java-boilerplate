@@ -649,6 +649,37 @@ ngOnChanges(changes: SimpleChanges): void {
 }
 ```
 
+### 6. Charts Blank After Tab Switch *(Tabs hidden during initial render)*
+
+**Problem**: When a Plotly chart is rendered inside an inactive `mat-tab`, the DOM container may have `width = 0` so Plotly draws a 0 × 0 canvas. When the user later activates the tab, the chart area stays empty.
+
+**Quick Fix**:
+```typescript
+// statistics.ts – after both HTTP calls finish
+if (typeof window !== 'undefined') {
+  // Force Plotly to recalculate sizes for all registered charts
+  setTimeout(() => window.dispatchEvent(new Event('resize')), 0);
+}
+```
+
+**Alternative**: call `Plotly.Plots.resize(element)` for each chart in `ngAfterViewInit` of the tab.
+
+### 7. "Run Report" Does Not Trigger Backend Call *(Observable cached with shareReplay)*
+
+**Problem**: The statistics service caches Observables with `shareReplay(1)`. Re-using the same parameters returns the cached stream so no new HTTP request appears in DevTools.
+
+**Solution 1 – Clear Cache Before Each Run**
+```typescript
+runReport() {
+  this.statisticsService.clearCache(); // <-- added
+  ...
+}
+```
+
+**Solution 2 – Provide a `refresh` flag**: Maintain a cache key that includes a timestamp or incrementing version so each run is unique.
+
+Both approaches guarantee fresh data and visible REST calls.
+
 ## Performance Optimization
 
 ### 1. Lazy Loading

@@ -322,28 +322,29 @@ maven repos have issue downloding
 
 ### Backend (`/backend-java-springboot`)
 1. **Statistics DTOs**:
-   • `CategoryStatisticsDto` { `categoryName`, `salesVolume`, `totalSales`, `percentage` }
-   • `SubcategoryStatisticsDto` { `subcategoryName`, `categoryName`, `monthlySales[]` }
+   • `CategoryStatisticsDto` { `categoryName`, `salesVolume`, `totalSales`, `percentage` } ✅
+   • `SubcategoryStatisticsDto` { `subcategoryName`, `categoryName`, `monthlySales[]` } ✅
+   • `MonthlySalesDto` { `month`, `totalSales`, `salesVolume` } ✅
    • `YearComparisonDto` { `categoryName`, `salesVolumeYearA`, `totalSalesYearA`, `salesVolumeYearB`, `totalSalesYearB` }
    • `DepartmentSalaryDto` { `departmentName`, `employeeCount`, `totalSalary`, `averageSalary`, `minSalary`, `maxSalary` }
 
 2. **Statistics Repository Queries**:
    • Native SQL or JPQL aggregation queries added to existing repositories:
-     - `OrderHeaderRepository.findSalesByCategory(from, to)`
-     - `OrderHeaderRepository.findSalesBySubcategory(category, from, to)`
+     - `OrderHeaderRepository.findSalesByCategory(from, to)` ✅
+     - `OrderHeaderRepository.findSalesBySubcategory(category, from, to)` ✅
      - `OrderHeaderRepository.findMonthlyTrend(from, to)`
      - `OrderHeaderRepository.findYearComparison(yearA, yearB)`
      - `EmployeeRepository.findDepartmentSalaryStats(from, to)` (for Modern Graph tab)
 
 3. **Statistics Service** (`StatisticsService`):
-   • `getCategorySalesStatistics(from, to)` → Pie data
-   • `getSubcategorySalesStatistics(category, from, to)` → Monthly bar data
+   • `getCategorySalesStatistics(from, to)` → Pie data ✅
+   • `getSubcategorySalesStatistics(category, from, to)` → Monthly bar data ✅
    • `getYearComparison(yearA, yearB)` → Grouped-bar & bubble data
    • `getDepartmentSalaryStats(metric, from, to)` → Area/line data (metric ∈ *average_salary, employee_count, total_salary, min_salary, max_salary*)
 
 4. **Statistics Controller** (`/api/v1/statistics`) – sample REST contract:
-   - `GET /category-sales?from=2013-01-01&to=2013-12-31`
-   - `GET /subcategory-sales?category=Bikes&from=2013-01-01&to=2013-12-31`
+   - `GET /category-sales?from=2013-01-01&to=2013-12-31` ✅
+   - `GET /subcategory-sales?category=Bikes&from=2013-01-01&to=2013-12-31` ✅
    - `GET /year-comparison?yearA=2013&yearB=2012`
    - `GET /department-salaries?metric=average_salary&from=2013-01-01&to=2013-12-31`
    • All endpoints validate parameters and return DTO lists ready for chart binding.
@@ -352,29 +353,29 @@ maven repos have issue downloding
 
 ### Frontend (`/frontend-angular`)
 1. **Module Setup**:
-   • `ng g m modules/features/statistics --route=statistics --module app.routes`
-   • Install Plotly for Angular: `npm i plotly.js-dist-min angular-plotly.js` (lazy-loadable size-optimized build)
-   • Provide PlotlyObject via `PlotlyModule.plotlyjs = Plotly;
+   • `ng g m modules/features/statistics --route=statistics --module app.routes` ✅
+   • Install Plotly for Angular: `npm i plotly.js-dist-min angular-plotly.js` (lazy-loadable size-optimized build) ✅
+   • Provide PlotlyObject via `PlotlyModule.plotlyjs = Plotly; ✅
 
 2. **StatisticsComponent** – **Material tab group** reproducing PowerBuilder layout:
-   - *Category Statistics*
-   - *Subcategory Statistics*
+   - *Category Statistics* ✅
+   - *Subcategory Statistics* ✅
    - *Google Charts 1* (Grouped Bar)
    - *Google Charts 2* (Bubble)
    - *Modern Graph* (Area / Line selectable)
 
 3. **Shared Controls**:
-   • **DateRangeSelectorComponent** (Date From / Date To pickers + *Run Report* button)
-   • **CategorySelectorComponent** (category & subcategory dropdowns, year/half-year radios)
+   • **DateRangeSelectorComponent** (Date From / Date To pickers + *Run Report* button) ✅
+   • **CategorySelectorComponent** (category filter dropdown) ✅
 
 4. **Tab Implementations (all use Plotly)**:
-   • **Category Statistics Tab**
-     - `category-pie-chart.component.ts` – Plotly *pie* trace + interactive legend
-     - `category-table.component.ts` – MatTable with sortable currency/number columns
+   • **Category Statistics Tab** ✅ **COMPLETED**
+     - `category-pie-chart.component.ts` – Plotly *pie* trace + interactive legend ✅
+     - `category-table.component.ts` – MatTable with sortable currency/number columns ✅
 
-   • **Subcategory Statistics Tab**
-     - `subcategory-monthly-bar.component.ts` – Plotly *bar* (stacked/grouped) trace per month
-     - Top-5 products MatTable under the chart
+   • **Subcategory Statistics Tab** ✅ **COMPLETED**
+     - `subcategory-monthly-bar.component.ts` – Plotly *bar* (stacked/grouped) trace per month ✅
+     - `subcategory-table.component.ts` – Performance summary table ✅
 
    • **Google Charts 1 Tab** – *Sales Report (Year A vs Year B)*
      - `year-comparison-bar.component.ts` – Plotly grouped-bar chart for 2013 vs 2012 (x = category, y = total sales)
@@ -391,9 +392,9 @@ maven repos have issue downloding
      - Department salary data table below
 
 5. **StatisticsService** (`statistics.service.ts`):
-   • Typed methods calling backend endpoints
-   • RxJS caching & shareReplay(1) per query to minimise traffic
-   • Transformation layer converting DTOs → Plotly `data` + `layout`
+   • Typed methods calling backend endpoints ✅
+   • RxJS caching & shareReplay(1) per query to minimise traffic ✅
+   • Transformation layer converting DTOs → Plotly `data` + `layout` ✅
 
 6. **UX & Responsiveness**:
    • All charts responsive (`responsive: true` config) and theme-aware (dark/light)

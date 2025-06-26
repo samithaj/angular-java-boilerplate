@@ -2,6 +2,7 @@ package com.example.crm.web;
 
 import com.example.crm.service.StatisticsService;
 import com.example.crm.web.dto.CategoryStatisticsDto;
+import com.example.crm.web.dto.SubcategoryStatisticsDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -33,5 +34,19 @@ public class StatisticsController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
         
         return statisticsService.getCategorySalesStatistics(from, to);
+    }
+
+    @GetMapping("/subcategory-sales")
+    @Operation(summary = "Get subcategory sales statistics", 
+               description = "Get monthly sales statistics grouped by product subcategory for a category and date range")
+    public List<SubcategoryStatisticsDto> getSubcategorySalesStatistics(
+            @Parameter(in = ParameterIn.QUERY, description = "Category name filter (optional)", example = "Bikes")
+            @RequestParam(required = false) String category,
+            @Parameter(in = ParameterIn.QUERY, description = "Start date (YYYY-MM-DD)", example = "2013-01-01", required = true)
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @Parameter(in = ParameterIn.QUERY, description = "End date (YYYY-MM-DD)", example = "2013-12-31", required = true)
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
+        
+        return statisticsService.getSubcategorySalesStatistics(category, from, to);
     }
 } 

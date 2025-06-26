@@ -52,4 +52,22 @@ public interface OrderHeaderRepository extends JpaRepository<OrderHeader, Long> 
            "ORDER BY SUM(ol.lineTotal) DESC")
     List<Object[]> findSalesByCategory(@Param("startDate") LocalDate startDate, 
                                        @Param("endDate") LocalDate endDate);
+
+    @Query("SELECT psc.name as subcategoryName, " +
+           "pc.name as categoryName, " +
+           "FUNCTION('DATE_FORMAT', oh.orderDate, '%Y-%m') as month, " +
+           "SUM(ol.quantity) as salesVolume, " +
+           "SUM(ol.lineTotal) as totalSales " +
+           "FROM OrderHeader oh " +
+           "JOIN oh.lines ol " +
+           "JOIN ol.product p " +
+           "JOIN p.subCategory psc " +
+           "JOIN psc.category pc " +
+           "WHERE oh.orderDate BETWEEN :startDate AND :endDate " +
+           "AND (:categoryName IS NULL OR pc.name = :categoryName) " +
+           "GROUP BY psc.id, psc.name, pc.name, FUNCTION('DATE_FORMAT', oh.orderDate, '%Y-%m') " +
+           "ORDER BY FUNCTION('DATE_FORMAT', oh.orderDate, '%Y-%m'), SUM(ol.lineTotal) DESC")
+    List<Object[]> findSalesBySubcategory(@Param("categoryName") String categoryName,
+                                          @Param("startDate") LocalDate startDate, 
+                                          @Param("endDate") LocalDate endDate);
 }

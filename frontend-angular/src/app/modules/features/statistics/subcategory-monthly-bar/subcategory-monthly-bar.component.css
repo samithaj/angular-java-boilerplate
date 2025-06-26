@@ -1,0 +1,43 @@
+.chart-container {
+  position: relative;
+  width: 100%;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.chart-loading, .chart-error, .no-data {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 400px;
+  font-size: 16px;
+  color: #666;
+}
+
+.chart-error {
+  color: #d32f2f;
+  background-color: #ffebee;
+  border: 1px solid #ffcdd2;
+  border-radius: 4px;
+  padding: 20px;
+}
+
+.no-data {
+  color: #666;
+  font-style: italic;
+}
+
+/* Dark theme support */
+@media (prefers-color-scheme: dark) {
+  .chart-container {
+    background: #303030;
+    color: white;
+  }
+  
+  .chart-loading {
+    color: #ccc;
+  }
+} 

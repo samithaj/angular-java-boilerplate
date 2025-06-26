@@ -1,4 +1,4 @@
-import { ApplicationConfig, provideBrowserGlobalErrorListeners, provideZoneChangeDetection, isDevMode } from '@angular/core';
+import { ApplicationConfig, provideBrowserGlobalErrorListeners, provideZoneChangeDetection, isDevMode, importProvidersFrom } from '@angular/core';
 import { provideRouter } from '@angular/router';
 
 import { routes } from './app.routes';
@@ -6,8 +6,10 @@ import { withInMemoryScrolling } from '@angular/router';
 import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideServiceWorker } from '@angular/service-worker';
-
 import { provideHttpClient, withFetch } from '@angular/common/http';
+
+// Remove static imports to avoid SSR issues
+// PlotlyJS will be loaded dynamically in components
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -28,6 +30,6 @@ export const appConfig: ApplicationConfig = {
       enabled: !isDevMode(),
       registrationStrategy: 'registerWhenStable:30000'
     })
-    // Plotly will be loaded dynamically in components only when in browser
+    // Plotly will be loaded dynamically to avoid SSR issues
   ]
 };
