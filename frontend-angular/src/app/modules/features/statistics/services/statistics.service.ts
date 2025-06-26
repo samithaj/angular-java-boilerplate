@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { shareReplay } from 'rxjs/operators';
-import { CategoryStatisticsDto, SubcategoryStatisticsDto } from './statistics.model';
+import { CategoryStatisticsDto, SubcategoryStatisticsDto, YearComparisonDto, DepartmentSalaryDto } from './statistics.model';
 
 @Injectable({
   providedIn: 'root'
@@ -47,6 +47,43 @@ export class StatisticsService {
     }
 
     const request$ = this.http.get<SubcategoryStatisticsDto[]>(`${this.baseUrl}/subcategory-sales`, { params })
+      .pipe(shareReplay(1));
+
+    this.cache.set(cacheKey, request$);
+    return request$;
+  }
+
+  getYearComparisonStatistics(yearA: number, yearB: number): Observable<YearComparisonDto[]> {
+    const cacheKey = `year-comparison-${yearA}-${yearB}`;
+    
+    if (this.cache.has(cacheKey)) {
+      return this.cache.get(cacheKey)!;
+    }
+
+    const params = new HttpParams()
+      .set('yearA', yearA.toString())
+      .set('yearB', yearB.toString());
+
+    const request$ = this.http.get<YearComparisonDto[]>(`${this.baseUrl}/year-comparison`, { params })
+      .pipe(shareReplay(1));
+
+    this.cache.set(cacheKey, request$);
+    return request$;
+  }
+
+  getDepartmentSalaryStatistics(metric: string, from: string, to: string): Observable<DepartmentSalaryDto[]> {
+    const cacheKey = `department-salaries-${metric}-${from}-${to}`;
+    
+    if (this.cache.has(cacheKey)) {
+      return this.cache.get(cacheKey)!;
+    }
+
+    const params = new HttpParams()
+      .set('metric', metric)
+      .set('from', from)
+      .set('to', to);
+
+    const request$ = this.http.get<DepartmentSalaryDto[]>(`${this.baseUrl}/department-salaries`, { params })
       .pipe(shareReplay(1));
 
     this.cache.set(cacheKey, request$);

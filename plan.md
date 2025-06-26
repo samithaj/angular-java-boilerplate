@@ -377,13 +377,14 @@ maven repos have issue downloding
      - `subcategory-monthly-bar.component.ts` – Plotly *bar* (stacked/grouped) trace per month ✅
      - `subcategory-table.component.ts` – Performance summary table ✅
 
-   • **Google Charts 1 Tab** – *Sales Report (Year A vs Year B)*
-     - `year-comparison-bar.component.ts` – Plotly grouped-bar chart for 2013 vs 2012 (x = category, y = total sales)
-     - Data table mirroring the bars
+   • **Google Charts 1 Tab** ✅ **COMPLETED**
+     - `year-comparison-bar.component.ts` – Plotly grouped-bar chart for 2013 vs 2012 (x = category, y = total sales) ✅
+     - `year-comparison-table.component.ts` – Data table with year comparison and difference calculations ✅
 
-   • **Google Charts 2 Tab** – *Bubble Chart*
-     - `year-comparison-bubble.component.ts` – Plotly *scatter* with `marker.size` = sales volume, `marker.color` = year, hover tooltip = category details
-     - Horizontal scrollbar like PowerBuilder (Plotly zoom + pan enabled)
+   • **Google Charts 2 Tab** ✅ **COMPLETED** 
+     - `year-comparison-bubble.component.ts` – Plotly *scatter* with `marker.size` = sales volume, `marker.color` = year, hover tooltip = category details ✅
+     - Pan and zoom enabled for PowerBuilder-style interaction ✅
+     - Reuses same data as Google Charts 1 ✅
 
    • **Modern Graph Tab** – *Dynamic Metric Chart*
      - Metric list (MatSelectionList) for *average_salary, employee_count, maximum_salary, minimum_salary, total_salary*

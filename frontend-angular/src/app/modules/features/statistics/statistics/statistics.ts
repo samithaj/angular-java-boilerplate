@@ -7,14 +7,20 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatSelectModule } from '@angular/material/select';
+import { MatListModule } from '@angular/material/list';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 
 import { StatisticsService } from '../services/statistics.service';
-import { CategoryStatisticsDto, SubcategoryStatisticsDto } from '../services/statistics.model';
+import { CategoryStatisticsDto, SubcategoryStatisticsDto, YearComparisonDto, DepartmentSalaryDto, MetricType, ChartType } from '../services/statistics.model';
 import { CategoryPieChartComponent } from '../category-pie-chart/category-pie-chart.component';
 import { CategoryTableComponent } from '../category-table/category-table.component';
 import { SubcategoryMonthlyBarComponent } from '../subcategory-monthly-bar/subcategory-monthly-bar.component';
 import { SubcategoryTableComponent } from '../subcategory-table/subcategory-table.component';
+import { YearComparisonBarComponent } from '../year-comparison-bar/year-comparison-bar.component';
+import { YearComparisonTableComponent } from '../year-comparison-table/year-comparison-table.component';
+import { YearComparisonBubbleComponent } from '../year-comparison-bubble/year-comparison-bubble.component';
+import { DepartmentMetricChartComponent } from '../department-metric-chart/department-metric-chart.component';
+import { DepartmentTableComponent } from '../department-table/department-table.component';
 
 @Component({
   selector: 'app-statistics',
@@ -28,11 +34,17 @@ import { SubcategoryTableComponent } from '../subcategory-table/subcategory-tabl
     MatFormFieldModule,
     MatNativeDateModule,
     MatSelectModule,
+    MatListModule,
     ReactiveFormsModule,
     CategoryPieChartComponent,
     CategoryTableComponent,
     SubcategoryMonthlyBarComponent,
-    SubcategoryTableComponent
+    SubcategoryTableComponent,
+    YearComparisonBarComponent,
+    YearComparisonTableComponent,
+    YearComparisonBubbleComponent,
+    DepartmentMetricChartComponent,
+    DepartmentTableComponent
   ],
   template: `
     <div class="statistics-container">
@@ -62,6 +74,44 @@ import { SubcategoryTableComponent } from '../subcategory-table/subcategory-tabl
               <mat-option *ngFor="let category of availableCategories()" [value]="category">
                 {{ category }}
               </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Year A</mat-label>
+            <mat-select formControlName="yearA">
+              <mat-option value="2013">2013</mat-option>
+              <mat-option value="2012">2012</mat-option>
+              <mat-option value="2011">2011</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Year B</mat-label>
+            <mat-select formControlName="yearB">
+              <mat-option value="2012">2012</mat-option>
+              <mat-option value="2013">2013</mat-option>
+              <mat-option value="2011">2011</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Metric</mat-label>
+            <mat-select formControlName="metric">
+              <mat-option value="average_salary">Average Salary</mat-option>
+              <mat-option value="employee_count">Employee Count</mat-option>
+              <mat-option value="total_salary">Total Salary</mat-option>
+              <mat-option value="min_salary">Min Salary</mat-option>
+              <mat-option value="max_salary">Max Salary</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Chart Type</mat-label>
+            <mat-select formControlName="chartType">
+              <mat-option value="area">Area Chart</mat-option>
+              <mat-option value="line">Line Chart</mat-option>
+              <mat-option value="bar">Bar Chart</mat-option>
             </mat-select>
           </mat-form-field>
 
@@ -107,19 +157,55 @@ import { SubcategoryTableComponent } from '../subcategory-table/subcategory-tabl
 
         <mat-tab label="Google Charts 1">
           <div class="tab-content">
-            <p>Year comparison bar chart will be implemented next</p>
+            <div class="chart-section">
+              <app-year-comparison-bar 
+                [data]="yearComparisonData()" 
+                [isLoading]="loading()" 
+                [errorMessage]="error()">
+              </app-year-comparison-bar>
+            </div>
+            
+            <div class="table-section">
+              <app-year-comparison-table [data]="yearComparisonData()"></app-year-comparison-table>
+            </div>
           </div>
         </mat-tab>
 
         <mat-tab label="Google Charts 2">
           <div class="tab-content">
-            <p>Bubble chart will be implemented next</p>
+            <div class="chart-section">
+              <app-year-comparison-bubble 
+                [data]="yearComparisonData()" 
+                [isLoading]="loading()" 
+                [errorMessage]="error()">
+              </app-year-comparison-bubble>
+            </div>
+            
+            <div class="table-section">
+              <app-year-comparison-table [data]="yearComparisonData()"></app-year-comparison-table>
+            </div>
           </div>
         </mat-tab>
 
         <mat-tab label="Modern Graph">
           <div class="tab-content">
-            <p>Dynamic metric chart will be implemented next</p>
+            <div class="chart-section">
+              <app-department-metric-chart 
+                [data]="departmentData()" 
+                [metric]="selectedMetric()"
+                [chartType]="selectedChartType()"
+                [isLoading]="loading()" 
+                [errorMessage]="error()">
+              </app-department-metric-chart>
+            </div>
+            
+            <div class="table-section">
+              <app-department-table 
+                [data]="departmentData()"
+                [isLoading]="loading()" 
+                [errorMessage]="error()">
+              </app-department-table>
+            </div>
           </div>
         </mat-tab>
       </mat-tab-group>
@@ -179,20 +265,43 @@ export class Statistics implements OnInit {
   // Reactive signals for state management
   categoryData = signal<CategoryStatisticsDto[]>([]);
   subcategoryData = signal<SubcategoryStatisticsDto[]>([]);
+  yearComparisonData = signal<YearComparisonDto[]>([]);
+  departmentData = signal<DepartmentSalaryDto[]>([]);
   availableCategories = signal<string[]>([]);
   loading = signal(false);
   error = signal<string | null>(null);
+
+  // Computed signals for form values
+  selectedMetric = signal<MetricType>('average_salary');
+  selectedChartType = signal<ChartType>('area');
 
   // Form for date controls
   dateForm = new FormGroup({
     from: new FormControl(new Date('2025-01-01')),
     to: new FormControl(new Date('2025-12-31')),
-    categoryFilter: new FormControl('')
+    categoryFilter: new FormControl(''),
+    yearA: new FormControl(2013),
+    yearB: new FormControl(2012),
+    metric: new FormControl<MetricType>('average_salary'),
+    chartType: new FormControl<ChartType>('area')
   });
 
   constructor(private statisticsService: StatisticsService) {}
 
   ngOnInit(): void {
+    // Subscribe to form changes for real-time updates
+    this.dateForm.get('metric')?.valueChanges.subscribe(value => {
+      if (value) {
+        this.selectedMetric.set(value);
+      }
+    });
+
+    this.dateForm.get('chartType')?.valueChanges.subscribe(value => {
+      if (value) {
+        this.selectedChartType.set(value);
+      }
+    });
+
     // Load initial data
     this.runReport();
   }
@@ -201,6 +310,9 @@ export class Statistics implements OnInit {
     const fromDate = this.dateForm.get('from')?.value;
     const toDate = this.dateForm.get('to')?.value;
     const categoryFilter = this.dateForm.get('categoryFilter')?.value || null;
+    const yearA = this.dateForm.get('yearA')?.value || 2013;
+    const yearB = this.dateForm.get('yearB')?.value || 2012;
+    const metric = this.dateForm.get('metric')?.value || 'average_salary';
 
     if (!fromDate || !toDate) {
       this.error.set('Please select valid date range');
@@ -216,13 +328,17 @@ export class Statistics implements OnInit {
     const fromStr = this.formatDate(fromDate);
     const toStr = this.formatDate(toDate);
 
-    // Load both category and subcategory statistics
+    // Load category, subcategory, year comparison, and department statistics
     Promise.all([
       this.statisticsService.getCategorySalesStatistics(fromStr, toStr).toPromise(),
-      this.statisticsService.getSubcategorySalesStatistics(categoryFilter, fromStr, toStr).toPromise()
-    ]).then(([categoryData, subcategoryData]) => {
+      this.statisticsService.getSubcategorySalesStatistics(categoryFilter, fromStr, toStr).toPromise(),
+      this.statisticsService.getYearComparisonStatistics(yearA, yearB).toPromise(),
+      this.statisticsService.getDepartmentSalaryStatistics(metric, fromStr, toStr).toPromise()
+    ]).then(([categoryData, subcategoryData, yearComparisonData, departmentData]) => {
       this.categoryData.set(categoryData || []);
       this.subcategoryData.set(subcategoryData || []);
+      this.yearComparisonData.set(yearComparisonData || []);
+      this.departmentData.set(departmentData || []);
       
       // Update available categories
       const categories = [...new Set((categoryData || []).map(cat => cat.categoryName))];

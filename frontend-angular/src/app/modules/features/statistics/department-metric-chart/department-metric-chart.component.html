@@ -1,0 +1,18 @@
+<div class="chart-container">
+  <div *ngIf="isBrowser && plotlyLoaded && !isLoading && !errorMessage && data.length > 0"
+       id="plotly-chart-department"
+       [style]="{width: '100%', height: '500px'}">
+  </div>
+  
+  <div class="chart-loading" *ngIf="isLoading || !plotlyLoaded">
+    <p>{{ plotlyLoaded ? 'Loading chart data...' : 'Loading chart library...' }}</p>
+  </div>
+  
+  <div class="chart-error" *ngIf="errorMessage">
+    <p>{{ errorMessage }}</p>
+  </div>
+  
+  <div class="no-data" *ngIf="!isLoading && !errorMessage && data.length === 0 && plotlyLoaded">
+    <p>No department data available</p>
+  </div>
+</div> 

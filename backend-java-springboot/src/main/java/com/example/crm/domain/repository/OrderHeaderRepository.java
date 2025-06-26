@@ -70,4 +70,19 @@ public interface OrderHeaderRepository extends JpaRepository<OrderHeader, Long> 
     List<Object[]> findSalesBySubcategory(@Param("categoryName") String categoryName,
                                           @Param("startDate") LocalDate startDate, 
                                           @Param("endDate") LocalDate endDate);
+
+    @Query("SELECT pc.name as categoryName, " +
+           "YEAR(oh.orderDate) as year, " +
+           "SUM(ol.quantity) as salesVolume, " +
+           "SUM(ol.lineTotal) as totalSales " +
+           "FROM OrderHeader oh " +
+           "JOIN oh.lines ol " +
+           "JOIN ol.product p " +
+           "JOIN p.subCategory psc " +
+           "JOIN psc.category pc " +
+           "WHERE YEAR(oh.orderDate) IN (:yearA, :yearB) " +
+           "GROUP BY pc.id, pc.name, YEAR(oh.orderDate) " +
+           "ORDER BY pc.name, YEAR(oh.orderDate)")
+    List<Object[]> findSalesByYearComparison(@Param("yearA") Integer yearA, 
+                                             @Param("yearB") Integer yearB);
 }

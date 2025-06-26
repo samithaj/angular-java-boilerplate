@@ -3,6 +3,8 @@ package com.example.crm.web;
 import com.example.crm.service.StatisticsService;
 import com.example.crm.web.dto.CategoryStatisticsDto;
 import com.example.crm.web.dto.SubcategoryStatisticsDto;
+import com.example.crm.web.dto.YearComparisonDto;
+import com.example.crm.web.dto.DepartmentSalaryDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -48,5 +50,31 @@ public class StatisticsController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
         
         return statisticsService.getSubcategorySalesStatistics(category, from, to);
+    }
+
+    @GetMapping("/year-comparison")
+    @Operation(summary = "Get year comparison statistics", 
+               description = "Compare sales statistics between two years by category")
+    public List<YearComparisonDto> getYearComparisonStatistics(
+            @Parameter(in = ParameterIn.QUERY, description = "First year for comparison", example = "2013", required = true)
+            @RequestParam Integer yearA,
+            @Parameter(in = ParameterIn.QUERY, description = "Second year for comparison", example = "2012", required = true)
+            @RequestParam Integer yearB) {
+        
+        return statisticsService.getYearComparisonStatistics(yearA, yearB);
+    }
+
+    @GetMapping("/department-salaries")
+    @Operation(summary = "Get department salary statistics", 
+               description = "Get salary statistics by department for a specific metric and date range")
+    public List<DepartmentSalaryDto> getDepartmentSalaryStatistics(
+            @Parameter(in = ParameterIn.QUERY, description = "Metric type", example = "average_salary", required = true)
+            @RequestParam String metric,
+            @Parameter(in = ParameterIn.QUERY, description = "Start date (YYYY-MM-DD)", example = "2013-01-01", required = true)
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @Parameter(in = ParameterIn.QUERY, description = "End date (YYYY-MM-DD)", example = "2013-12-31", required = true)
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
+        
+        return statisticsService.getDepartmentSalaryStatistics(metric, from, to);
     }
 } 
